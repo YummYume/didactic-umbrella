@@ -1,0 +1,43 @@
+services:
+  svelte-kit:
+    build:
+      context: .
+      dockerfile: ./docker/dev/Dockerfile
+    volumes:
+      - ./:/home/bun/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    container_name: hk-app
+    ports:
+      - 5173:5173
+      - 4173:4173
+
+  mysql:
+    image: mysql:8.4.0
+    restart: unless-stopped
+    container_name: hk-mysql
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: '${MYSQL_DATABASE:?err}'
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD:?err}'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 20s
+      retries: 5
+      start_period: 60s
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: unless-stopped
+    container_name: hk-phpmyadmin
+    ports:
+      - 8080:80
+    depends_on:
+      mysql:
+        condition: service_healthy

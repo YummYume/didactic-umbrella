@@ -1,0 +1,15 @@
+# Package Managers
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Node Modules
+node_modules/
+
+# Folders
+build/
+.svelte-kit/
+dist/
+data/
+.vscode/
+.idea/
