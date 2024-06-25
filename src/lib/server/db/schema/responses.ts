@@ -1,16 +1,16 @@
 import { relations } from 'drizzle-orm';
-import { mysqlTable, text, varchar } from 'drizzle-orm/mysql-core';
+import { json, mysqlTable, varchar } from 'drizzle-orm/mysql-core';
 
-import { idable } from './extend-schema/idable';
+import { identifiable } from './extend-schema/identifiable';
 import { timestampable } from './extend-schema/timestampable';
 import { messages } from './messages';
 import { patients } from './patients';
 import { users } from './users';
 
 export const responses = mysqlTable('responses', {
-  ...idable,
-  content: text('content').notNull(),
-  data: text('data').notNull(),
+  ...identifiable,
+  content: json('content').notNull(),
+  data: json('data').notNull(),
   messageId: varchar('message_id', { length: 255 })
     .notNull()
     .references(() => messages.id),

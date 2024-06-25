@@ -1,14 +1,14 @@
 import { relations } from 'drizzle-orm';
 import { mysqlTable, varchar } from 'drizzle-orm/mysql-core';
 
-import { idable } from './extend-schema/idable';
+import { identifiable } from './extend-schema/identifiable';
 import { timestampable } from './extend-schema/timestampable';
 import { messages } from './messages';
 import { responses } from './responses';
 import { sessions } from './sessions';
 
 export const users = mysqlTable('users', {
-  ...idable,
+  ...identifiable,
   email: varchar('email', { length: 255 }).unique().notNull(),
   password: varchar('password', { length: 255 }).notNull(),
   firstName: varchar('first_name', { length: 255 }).notNull(),

@@ -99,4 +99,3 @@ db-drop-migration: ## Drop the latest migration from the database
 
 db-create-migration: ## Create a new migration
 	$(EXECSVELTEKIT) bunx drizzle-kit generate --config=drizzle/drizzle.config.ts
-

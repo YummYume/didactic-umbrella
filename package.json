@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "concurrently \"vite dev --host\" \"bun run db:studio\"",
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -15,7 +15,7 @@
     "db:migrate": "bun --bun run ./drizzle/commands/migrate.ts",
     "db:drop": "bun --bun run ./drizzle/commands/drop.ts",
     "db:create": "bun --bun run ./drizzle/commands/create.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "bunx drizzle-kit studio --host 0.0.0.0 --verbose --config=./drizzle/drizzle.config.ts"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.1.195",
@@ -34,6 +34,7 @@
     "@types/node": "^20.14.8",
     "autoprefixer": "^10.4.19",
     "bits-ui": "^0.21.10",
+    "concurrently": "^8.2.2",
     "drizzle-kit": "^0.22.7",
     "eslint": "^9.5.0",
     "eslint-config-prettier": "^9.1.0",

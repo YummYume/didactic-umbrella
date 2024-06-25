@@ -1,4 +1,5 @@
 import type MistralClient from '@mistralai/mistralai';
+import type { Session, User } from 'lucia';
 
 // for information about these interfaces
 declare global {
@@ -6,8 +7,8 @@ declare global {
     // interface Error {}
     interface Locals {
       mistral: MistralClient;
-      user: import('lucia').User | null;
-      session: import('lucia').Session | null;
+      user: User | null;
+      session: Session | null;
     }
     interface PageData {
       title?: string;
@@ -34,6 +35,19 @@ declare global {
   interface Document {
     startViewTransition(updateCallback: () => Promise<void>): ViewTransition;
   }
+}
+
+declare module 'lucia' {
+  interface Register {
+    Lucia: typeof lucia;
+    DatabaseUserAttributes: DatabaseUserAttributes;
+  }
+}
+
+interface DatabaseUserAttributes {
+  email: string;
+  firstName: string;
+  lastName: string;
 }
 
 export {};

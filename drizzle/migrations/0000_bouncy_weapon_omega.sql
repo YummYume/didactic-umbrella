@@ -1,7 +1,7 @@
 CREATE TABLE `messages` (
 	`id` varchar(255) NOT NULL,
-	`content` text NOT NULL,
-	`data` text NOT NULL,
+	`content` json NOT NULL,
+	`data` json NOT NULL,
 	`user_id` varchar(255),
 	`patient_id` varchar(255),
 	`created_at` timestamp NOT NULL DEFAULT (now()),
@@ -20,8 +20,8 @@ CREATE TABLE `patients` (
 --> statement-breakpoint
 CREATE TABLE `responses` (
 	`id` varchar(255) NOT NULL,
-	`content` text NOT NULL,
-	`data` text NOT NULL,
+	`content` json NOT NULL,
+	`data` json NOT NULL,
 	`message_id` varchar(255) NOT NULL,
 	`user_id` varchar(255),
 	`patient_id` varchar(255),
