@@ -13,3 +13,6 @@ dist/
 data/
 .vscode/
 .idea/
+
+.git/
+.github/
