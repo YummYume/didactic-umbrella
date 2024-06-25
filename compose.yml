@@ -36,6 +36,8 @@ services:
     image: phpmyadmin:latest
     restart: unless-stopped
     container_name: hk-phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
     ports:
       - 8080:80
     depends_on:

@@ -94,7 +94,7 @@ db-drop-migration: ## Drop the latest migration from the database
 	$(EXECSVELTEKIT) bunx drizzle-kit drop --config=drizzle/drizzle.config.ts
 
 db-create-migration: ## Create a new migration
-	$(EXECSVELTEKIT) bunx drizzle-kit generate:mysql --config=drizzle/drizzle.config.ts
+	$(EXECSVELTEKIT) bunx drizzle-kit generate --config=drizzle/drizzle.config.ts
 
 db-studio: ## Launch the drizzle studio
-	$(EXECSVELTEKIT) bunx drizzle-kit studio --host 0.0.0.0 --port 3001 --config=./drizzle/drizzle.config.ts
+	$(EXECSVELTEKIT) bunx drizzle-kit studio --host 0.0.0.0 --verbose --config=./drizzle/drizzle.config.ts

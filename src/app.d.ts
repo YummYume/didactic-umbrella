@@ -6,6 +6,8 @@ declare global {
     // interface Error {}
     interface Locals {
       mistral: MistralClient;
+      user: import('lucia').User | null;
+      session: import('lucia').Session | null;
     }
     interface PageData {
       title?: string;
