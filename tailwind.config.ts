@@ -1,5 +1,5 @@
-import { fontFamily } from "tailwindcss/defaultTheme";
 import type { Config } from "tailwindcss";
+import { fontFamily } from "tailwindcss/defaultTheme";
 
 const config: Config = {
 	darkMode: ["class"],
@@ -15,32 +15,6 @@ const config: Config = {
 		},
 		extend: {
 			colors: {
-				// primary: {
-				// 	'50': '#fff4ed',
-				// 	'100': '#ffe7d5',
-				// 	'200': '#ffcaa9',
-				// 	'300': '#fea573',
-				// 	'400': '#fd743a',
-				// 	'500': '#fb4f14',
-				// 	'600': '#ec340a',
-				// 	'700': '#c4230a',
-				// 	'800': '#9b1e11',
-				// 	'900': '#7d1c11',
-				// 	'950': '#440a06',
-				// },
-				// secondary: {
-				// 	'50': '#f1fcfb',
-				// 	'100': '#d0f7f5',
-				// 	'200': '#a1eeeb',
-				// 	'300': '#6adede',
-				// 	'400': '#35b3b7',
-				// 	'500': '#22a4aa',
-				// 	'600': '#188189',
-				// 	'700': '#18666d',
-				// 	'800': '#175358',
-				// 	'900': '#184449',
-				// 	'950': '#08262b',
-				// },
 				border: "hsl(var(--border) / <alpha-value>)",
 				input: "hsl(var(--input) / <alpha-value>)",
 				ring: "hsl(var(--ring) / <alpha-value>)",
