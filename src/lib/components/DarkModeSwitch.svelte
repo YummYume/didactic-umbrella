@@ -4,6 +4,7 @@
 
     import IconMoon from '~icons/lucide/moon';
     import IconSun from '~icons/lucide/sun';
+
     import Button from './ui/button/button.svelte';
 </script>
 
