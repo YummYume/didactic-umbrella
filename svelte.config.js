@@ -8,12 +8,12 @@ const config = {
   kit: {
     adapter: adapter(),
     alias: {
-      $components: './src/lib/components',
-      $utils: './src/lib/utils',
-      $server: './src/lib/server',
-      $types: './src/lib/types',
-      $db: './src/lib/server/db',
-      "@/*": "./src/lib/*",
+      '$components': './src/lib/components',
+      '$utils': './src/lib/utils',
+      '$server': './src/lib/server',
+      '$types': './src/lib/types',
+      '$db': './src/lib/server/db',
+      '@/*': './src/lib/*',
     },
   },
 };
