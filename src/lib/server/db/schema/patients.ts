@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { mysqlTable, text } from 'drizzle-orm/mysql-core';
+import { mysqlTable, varchar } from 'drizzle-orm/mysql-core';
 
 import { idable } from './extend-schema/idable';
 import { timestampable } from './extend-schema/timestampable';
@@ -8,7 +8,7 @@ import { responses } from './responses';
 
 export const patients = mysqlTable('patients', {
   ...idable,
-  phone: text('phone').notNull(),
+  phone: varchar('phone', { length: 10 }).unique().notNull(),
   ...timestampable,
 });
 

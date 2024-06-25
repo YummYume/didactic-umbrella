@@ -18,3 +18,5 @@ data/
 .github/
 
 .history/
+
+migrations/

@@ -11,10 +11,11 @@ CREATE TABLE `messages` (
 --> statement-breakpoint
 CREATE TABLE `patients` (
 	`id` varchar(255) NOT NULL,
-	`phone` text NOT NULL,
+	`phone` varchar(10) NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),
 	`updated_at` timestamp NOT NULL DEFAULT (now()),
-	CONSTRAINT `patients_id` PRIMARY KEY(`id`)
+	CONSTRAINT `patients_id` PRIMARY KEY(`id`),
+	CONSTRAINT `patients_phone_unique` UNIQUE(`phone`)
 );
 --> statement-breakpoint
 CREATE TABLE `responses` (

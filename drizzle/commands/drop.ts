@@ -1,22 +1,16 @@
-import mysql from 'mysql2/promise';
+import { connection } from './connection';
 
-const { MYSQL_SERVICE_URL, MYSQL_DATABASE } = process.env;
-
-if (!MYSQL_SERVICE_URL) {
-  throw new Error('Environment variable MYSQL_SERVICE_URL is required.');
-}
+const { MYSQL_DATABASE } = process.env;
 
 if (!MYSQL_DATABASE) {
   throw new Error('Environment variable MYSQL_DATABASE is required.');
 }
 
-const client = await mysql.createConnection(MYSQL_SERVICE_URL);
-
-await client.query(`DROP DATABASE IF EXISTS ${MYSQL_DATABASE};`);
+await connection.query(`DROP DATABASE IF EXISTS ${MYSQL_DATABASE};`);
 
 console.log('Database dropped.');
 
-await client.end();
+await connection.end();
 
 console.log('Connection closed.');
 

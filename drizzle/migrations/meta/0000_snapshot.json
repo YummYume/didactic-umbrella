@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "e5bbb0ed-6534-45de-8cef-22f1bd25a9c4",
+  "id": "0bf6e121-f0f2-4a1e-8974-2b4e8fa0ca93",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "messages": {
@@ -110,7 +110,7 @@
         },
         "phone": {
           "name": "phone",
-          "type": "text",
+          "type": "varchar(10)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -142,7 +142,14 @@
           ]
         }
       },
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "patients_phone_unique": {
+          "name": "patients_phone_unique",
+          "columns": [
+            "phone"
+          ]
+        }
+      }
     },
     "responses": {
       "name": "responses",
