@@ -31,12 +31,14 @@ const DATA = [
   },
 ];
 
-export const GET = (async ({ request, locals }) => {
+export const POST = (async ({ request, locals }) => {
   const data = await request.json();
   const validatedData = safeParse(AssistantMessageSchema, data);
 
   if (!validatedData.success) {
-    throw error(400, validatedData.issues.join(', '));
+    console.error('issues', validatedData.issues);
+
+    throw error(400, validatedData.issues.map((issue) => issue.message).join('\n'));
   }
 
   const response = await locals.openai.chat.completions.create({
@@ -61,7 +63,7 @@ export const GET = (async ({ request, locals }) => {
     const intent = safeParse(IntentSchema, JSON.parse(choice.message.content));
 
     if (intent && intent.success) {
-      const { search, property, query, startDate, endDate } = intent.output;
+      // const { search, property, query, startDate, endDate } = intent.output;
 
       // TODO real search
 
@@ -85,6 +87,7 @@ export const GET = (async ({ request, locals }) => {
     });
   }
 
+  // TODO use https://github.com/openai/openai-node?tab=readme-ov-file#automated-function-calls later
   const stream = await locals.openai.chat.completions.create({
     model: 'gpt-4',
     messages,
