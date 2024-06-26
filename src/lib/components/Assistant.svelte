@@ -2,7 +2,7 @@
     export type AssistantStatus = 'available' | 'analyzing' | 'typing';
 
     export type AssistantProps = {
-        opened: boolean;
+        opened?: boolean;
     };
 </script>
 
@@ -19,6 +19,8 @@
     import Chat, { type Message } from './chat/Chat.svelte';
 
     import type { ChatCompletionChunk } from 'openai/resources/index.mjs';
+
+    const { opened = false }: AssistantProps = $props();
 
     const assistantStatusText: Record<AssistantStatus, string> = {
         available: 'Disponible',
@@ -153,13 +155,15 @@
     };
 </script>
 
-<div>
-    <h2>Assistant</h2>
-    <p>{currentAssistantStatusText}</p>
-    <Chat
-        {messages}
-        onsubmit="{sendMessage}"
-        bind:currentMessage="{answer}"
-        busy="{assistantStatus !== 'available'}"
-    />
-</div>
+{#if opened}
+    <div>
+        <h2>Assistant</h2>
+        <p>{currentAssistantStatusText}</p>
+        <Chat
+            {messages}
+            onsubmit="{sendMessage}"
+            bind:currentMessage="{answer}"
+            busy="{assistantStatus !== 'available'}"
+        />
+    </div>
+{/if}

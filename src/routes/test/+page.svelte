@@ -2,4 +2,4 @@
     import Assistant from '$components/Assistant.svelte';
 </script>
 
-<Assistant />
+<Assistant opened />
