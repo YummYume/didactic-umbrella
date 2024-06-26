@@ -5,7 +5,7 @@
         event: CustomEvent<{ email: string; motDePasse: string; confirmerMotDePasse: string }>,
     ) => {
         const { email, motDePasse, confirmerMotDePasse } = event.detail;
-        console.log('Détails d\'inscription :', email, motDePasse, confirmerMotDePasse);
+        console.log("Détails d'inscription :", email, motDePasse, confirmerMotDePasse);
     };
 </script>
 

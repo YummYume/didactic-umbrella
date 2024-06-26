@@ -8,21 +8,21 @@
         goto('/signup');
     };
 
-    const gererConnexion = (event: CustomEvent<{ email: string; motDePasse: string }>) => {
-        const { email, motDePasse } = event.detail;
+    const gererConnexion = (event: Event) => {
+        event.preventDefault();
         console.log('Détails de connexion :', email, motDePasse);
     };
 </script>
 
 <div class="bg-background-secondary flex min-h-screen">
-    <div class="form-container flex flex-1 items-center justify-center w-1/2">
+    <div class="form-container flex w-1/2 flex-1 items-center justify-center">
         <div class="w-full max-w-md space-y-8">
             <div>
                 <h2 class="mt-6 text-center text-3xl font-extrabold text-foreground">
                     Connectez-vous à votre compte
                 </h2>
             </div>
-            <form class="mt-8 space-y-6">
+            <form class="mt-8 space-y-6" on:submit="{gererConnexion}">
                 <input type="hidden" name="remember" value="true" />
                 <div class="-space-y-px rounded-md shadow-sm">
                     <div>
@@ -83,7 +83,11 @@
                 <div class="text-center text-sm">
                     <p>
                         Vous n'avez pas de compte ?
-                        <button type="button" on:click="{naviguerVersInscription}" class="link-primary">
+                        <button
+                            type="button"
+                            on:click="{naviguerVersInscription}"
+                            class="link-primary"
+                        >
                             Inscrivez-vous
                         </button>
                     </p>
@@ -91,11 +95,7 @@
             </form>
         </div>
     </div>
-    <div class="flex items-center justify-center bg-muted w-1/2">
-        <img
-            src="/medical-background.jpg"
-            alt="Fond médical"
-            class="h-full w-full object-cover"
-        />
+    <div class="flex w-1/2 items-center justify-center bg-muted">
+        <img src="/medical-background.jpg" alt="Fond médical" class="h-full w-full object-cover" />
     </div>
 </div>
