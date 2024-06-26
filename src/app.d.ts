@@ -1,14 +1,14 @@
-import type MistralClient from '@mistralai/mistralai';
 import type { Session, User } from 'lucia';
+import type OpenAI from 'openai';
 
 // for information about these interfaces
 declare global {
   namespace App {
     // interface Error {}
     interface Locals {
-      mistral: MistralClient;
       user: User | null;
       session: Session | null;
+      openai: OpenAI;
     }
     interface PageData {
       title?: string;
