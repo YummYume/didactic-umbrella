@@ -1,10 +1,10 @@
 <script lang="ts">
     import LoginForm from './LoginForm.svelte';
 
-    const handleLogin = (event: CustomEvent<{ email: string; password: string }>) => {
-        const { email, password } = event.detail;
-        console.log('Login details:', email, password);
+    const gererConnexion = (event: CustomEvent<{ email: string; motDePasse: string }>) => {
+        const { email, motDePasse } = event.detail;
+        console.log('Détails de connexion :', email, motDePasse);
     };
 </script>
 
-<LoginForm on:login="{handleLogin}" />
+<LoginForm on:login="{gererConnexion}" />
