@@ -1,10 +1,10 @@
 import { lucia } from '$server/auth';
-import { mistralClient } from '$server/mistral';
+import { openai } from '$server/openai';
 
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
-  event.locals.mistral = mistralClient;
+  event.locals.openai = openai;
 
   const sessionId = event.cookies.get(lucia.sessionCookieName);
 
