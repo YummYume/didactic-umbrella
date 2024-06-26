@@ -20,9 +20,9 @@
     {#key $mode}
         <span aria-hidden="true" in:fade>
             {#if $mode === 'dark'}
-                <IconMoon class="size-4" />
+                <IconMoon class="size-6" />
             {:else}
-                <IconSun class="size-4" />
+                <IconSun class="size-6" />
             {/if}
         </span>
     {/key}
