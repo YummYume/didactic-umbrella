@@ -13,6 +13,7 @@
     "format": "prettier --write './!(data)/**/*.{js,ts,svelte,md,scss,html,css}' && eslint . --fix",
     "db:push": "drizzle-kit push",
     "db:migrate": "bun --bun run ./drizzle/commands/migrate.ts",
+    "db:fixtures": "bun --bun run ./drizzle/commands/fixtures.ts",
     "db:drop": "bun --bun run ./drizzle/commands/drop.ts",
     "db:create": "bun --bun run ./drizzle/commands/create.ts",
     "db:studio": "bunx drizzle-kit studio --host 0.0.0.0 --verbose --config=./drizzle/drizzle.config.ts"
