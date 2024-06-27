@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bunx dotenvx run -f .env.local -f .env --overload -- vite dev --host",
+    "dev": "bunx dotenvx run -f .env -f .env.local --overload -- vite dev --host",
     "build": "bunx dotenvx run -f .env -- vite build",
-    "preview": "bunx dotenvx run -f .env.local -f .env --overload -- vite preview",
+    "preview": "bunx dotenvx run -f .env -f .env.local --overload -- vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --check './!(data)/**/*.{js,ts,svelte,md,scss,html,css}' && eslint .",

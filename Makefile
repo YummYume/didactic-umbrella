@@ -11,7 +11,7 @@ help:  ## Display this help
 
 ##@ Starting/stopping the project
 start: ## Build and start the project
-	make up-recreate
+	make up-recreate db-reset db-fixtures
 
 start-nocache: ## Build and start the project without cache
 	build-no-chache up-recreate

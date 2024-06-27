@@ -41,4 +41,4 @@ jobs:
         run: bun run check
 
       - name: Check build
-        run: bun --env-file=.env run build
+        run: bun run build
