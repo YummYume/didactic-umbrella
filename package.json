@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@gcornut/valibot-json-schema": "^0.31.0",
+    "@iconify-json/heroicons": "^1.1.21",
     "@iconify-json/lucide": "^1.1.195",
     "@iconify-json/tabler": "^1.1.114",
     "@melt-ui/pp": "^0.3.2",
@@ -69,7 +70,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.31.2",
     "lucia": "^3.2.0",
-    "lucide-svelte": "^0.396.0",
+    "lucide-svelte": "^0.397.0",
     "mysql2": "^3.10.1",
     "openai": "^4.52.1",
     "oslo": "^1.2.0",

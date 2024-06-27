@@ -60,8 +60,8 @@
 >
     <div class="container flex h-14 max-w-screen-2xl items-center justify-between">
         <div class="mr-4 flex">
-            <Button class="mr-6" href="/" variant="link">
-                <img alt="The project logo" class="h-6" src="{logo}" />
+            <Button class="mr-6" href="/" variant="ghost">
+                <img alt="Calmedica" class="h-6" src="{logo}" />
             </Button>
         </div>
         <DarkModeSwitch />
