@@ -1,4 +1,6 @@
 <script context="module" lang="ts">
+    import Markdown from 'svelte-exmarkdown';
+
     import type { Snippet } from 'svelte';
     import type { EventHandler, HTMLAttributes } from 'svelte/elements';
 
@@ -31,13 +33,17 @@
          */
         busy?: boolean;
         /**
+         * Whether to allow Markdown in the messages.
+         */
+        allowMarkdown?: boolean;
+        /**
          * The event handler for the form submission.
          */
         onsubmit?: EventHandler<SubmitEvent, HTMLFormElement>;
         /**
          * The template (`Snippet`) for rendering a message.
          */
-        messageTemplate?: Snippet<[Message]>;
+        messageTemplate?: Snippet<[Message, boolean | undefined]>;
         /**
          * The template (`Snippet`) for rendering the form.
          * You do not need to provide the `currentMessage` prop if you use a custom form template.
@@ -53,6 +59,7 @@
         messages,
         currentMessage = $bindable(null),
         busy = false,
+        allowMarkdown = false,
         onsubmit,
         messageTemplate = defaultMessageTemplate,
         formTemplate = defaultFormTemplate,
@@ -60,9 +67,13 @@
     }: ChatProps = $props();
 </script>
 
-{#snippet defaultMessageTemplate(message: Message)}
-    <li>
-        {message.content}
+{#snippet defaultMessageTemplate(message: Message, allowMarkdown: boolean = false)}
+    <li class="{allowMarkdown ? 'prose lg:prose-xl' : ''}">
+        {#if allowMarkdown}
+            <Markdown md="{message.content}" />
+        {:else}
+            {message.content}
+        {/if}
     </li>
 {/snippet}
 
@@ -82,7 +93,7 @@
 <div {...attributes}>
     <ul>
         {#each messages as message}
-            {@render messageTemplate(message)}
+            {@render messageTemplate(message, allowMarkdown)}
         {/each}
     </ul>
 

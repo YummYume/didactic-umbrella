@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-    export type AssistantStatus = 'available' | 'analyzing' | 'typing';
+    export type AssistantStatus = 'available' | 'analyzing' | 'searching' | 'typing';
 
     export type AssistantProps = {
         opened?: boolean;
@@ -12,7 +12,7 @@
     import { safeParse } from 'valibot';
 
     import { dev } from '$app/environment';
-    import { AssistantMessageContentSchema } from '$lib/schemas/assistant';
+    import { AssistantMessageContentSchema } from '$lib/schemas/message';
 
     import { AssistantError } from '$utils/error';
 
@@ -25,6 +25,7 @@
     const assistantStatusText: Record<AssistantStatus, string> = {
         available: 'Disponible',
         analyzing: 'Réflexion en cours...',
+        searching: 'Recherche en cours...',
         typing: 'Écrit...',
     };
 
@@ -35,6 +36,9 @@
     let abortController = $state(new AbortController());
     let currentAssistantStatusText = $derived(assistantStatusText[assistantStatus]);
 
+    /**
+     * Sends a new message to the assistant.
+     */
     const sendMessage = async (event: SubmitEvent) => {
         try {
             event.preventDefault();
@@ -116,17 +120,52 @@
 
             // Clear the temporary message and indicate that the assistant is typing
             message.content = '';
-            assistantStatus = 'typing';
 
-            // For every chunk sent to the stream...
-            for await (const chunk of stream) {
-                // If there's content
-                if (chunk.choices[0].delta.content !== undefined) {
-                    // Add the content to the message
-                    const streamText = chunk.choices[0].delta.content;
+            try {
+                // For every chunk sent to the stream...
+                for await (const chunk of stream) {
+                    const firstChoice = chunk.choices.at(0);
 
-                    message.content += streamText;
+                    if (!firstChoice) {
+                        continue;
+                    }
+
+                    // If the assistant is calling a function and there's no content, we should add a temporary message
+                    if (
+                        firstChoice.delta.tool_calls !== undefined &&
+                        message.content === '' &&
+                        assistantStatus === 'analyzing'
+                    ) {
+                        assistantStatus = 'searching';
+
+                        message.content = 'Recherche approfondie en cours...';
+                    }
+
+                    // If there's content
+                    if (firstChoice.delta.content) {
+                        if (assistantStatus !== 'typing') {
+                            message.content = '';
+                            assistantStatus = 'typing';
+                        }
+
+                        // Add the content to the message
+                        const streamText = firstChoice.delta.content;
+
+                        message.content += streamText;
+                    }
                 }
+            } catch (e) {
+                if (dev) {
+                    console.error(
+                        'Unexpected error while reading the stream from the assistant:',
+                        e,
+                    );
+                }
+
+                throw new AssistantError(
+                    "Une erreur est survenue lors de la lecture de la réponse de l'assistant. Veuillez réessayer.",
+                    true,
+                );
             }
         } catch (e) {
             // Handle errors (assistant errors are handled differently)
@@ -142,8 +181,13 @@
                 return;
             }
 
-            if (e.popLastMessage) {
-                messages.pop();
+            if (e.replaceLastMessage) {
+                const lastMessage = messages.at(-1);
+
+                if (lastMessage && lastMessage.sender === 'other') {
+                    lastMessage.content =
+                        "Je n'ai pas pu vous répondre à cause d'une erreur inattendue. Vous pouvez réessayer à tout moment.";
+                }
             }
 
             // We know the message is safe to display
@@ -161,9 +205,10 @@
         <p>{currentAssistantStatusText}</p>
         <Chat
             {messages}
-            onsubmit="{sendMessage}"
             bind:currentMessage="{answer}"
+            onsubmit="{sendMessage}"
             busy="{assistantStatus !== 'available'}"
+            allowMarkdown
         />
     </div>
 {/if}

@@ -5,14 +5,14 @@ export class AssistantError extends Error {
   private static readonly NAME = 'AssistantError';
 
   /**
-   * Whether to pop the last message from the assistant when this error is thrown.
+   * Whether to replace the last message from the assistant with an error message when this error is thrown.
    */
-  popLastMessage: boolean;
+  replaceLastMessage: boolean;
 
-  constructor(message: string, popLastMessage = false) {
+  constructor(message: string, replaceLastMessage = false) {
     super(message);
 
     this.name = AssistantError.NAME;
-    this.popLastMessage = popLastMessage;
+    this.replaceLastMessage = replaceLastMessage;
   }
 }
