@@ -5,7 +5,10 @@ import type { db } from '$server/db';
 // for information about these interfaces
 declare global {
   namespace App {
-    // interface Error {}
+    interface Error {
+      message: string;
+      errors?: SchemaIssues;
+    }
     interface Locals {
       user: User | null;
       session: Session | null;
