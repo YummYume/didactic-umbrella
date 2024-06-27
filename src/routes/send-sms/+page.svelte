@@ -6,7 +6,7 @@
     import Input from '$components/ui/input/input.svelte';
     import Textarea from '$components/ui/textarea/textarea.svelte';
 
-    let isSubmit = $state(false);
+    let isSubmitting = $state(false);
 </script>
 
 <div>
@@ -15,16 +15,16 @@
         method="post"
         action="?/send"
         use:enhance="{({ cancel }) => {
-            if (isSubmit) {
+            if (isSubmitting) {
                 cancel();
                 return;
             }
 
-            isSubmit = true;
+            isSubmitting = true;
 
             return async ({ update, result }) => {
                 await update();
-                isSubmit = false;
+                isSubmitting = false;
 
                 if (result.type === 'success') {
                     toast.success('Message envoyé avec succès');
@@ -48,8 +48,8 @@
         />
         <label for="message">Message</label>
         <Textarea name="message" id="message" placeholder="Votre message.." required />
-        <button type="submit" disabled="{isSubmit}"
-            >{isSubmit ? 'envoi en cours..' : 'envoyer'}</button
+        <button type="submit" disabled="{isSubmitting}"
+            >{isSubmitting ? 'envoi en cours..' : 'envoyer'}</button
         >
     </form>
 </div>

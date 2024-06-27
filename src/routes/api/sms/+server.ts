@@ -67,7 +67,7 @@ export const POST = (async ({ request, locals }) => {
         fait attention au sarcasse, aux informations inutiles et aux informations manquantes,
         tu utilises uniquement le français,
         prends en compte uniquement les messages à caractères médicaux,
-        si le message est une réponse à caractères humoristique, ou blague, tu dois renvoyer un message d'erreur: { "error": "Votre message est innaproprié." },
+        si le message est une réponse à caractères humoristique, ou blague, tu dois renvoyer un message d'erreur: { "error": "Votre message est inapproprié." },
         et le trier en fonction de son contenu sous le format JSON avec les clés suivantes : 
         {
           "type": "(${Object.values(TypeMessage).join(' ou ')})",
@@ -135,7 +135,7 @@ export const POST = (async ({ request, locals }) => {
   const iaResponse = validatedDataIA.output;
 
   // Save the response
-  if (iaResponse.type === TypeMessage.responses && iaResponse.messageLinkId) {
+  if (iaResponse.type === TypeMessage.Responses && iaResponse.messageLinkId) {
     const newResponse = await db.insert(responses).values({
       data: JSON.stringify(iaResponse),
       content: validatedData.output.message,

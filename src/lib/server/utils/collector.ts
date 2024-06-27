@@ -2,15 +2,15 @@
  * The type of the message send
  */
 export enum TypeMessage {
-  responses = 'responses',
-  messages = 'messages',
+  Responses = 'responses',
+  Messages = 'messages',
 }
 
 /**
  * The category of the message
  */
 export enum CategoryMessage {
-  inaproppriate = 'inaproppriate',
-  normal = 'normal',
-  important = 'important',
+  Inaproppriate = 'inaproppriate',
+  Normal = 'normal',
+  Important = 'important',
 }

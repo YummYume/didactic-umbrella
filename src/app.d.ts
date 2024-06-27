@@ -14,7 +14,6 @@ declare global {
       session: Session | null;
       db: typeof db;
       openai: OpenAI;
-      db: typeof db;
     }
     interface PageData {
       title?: string;
