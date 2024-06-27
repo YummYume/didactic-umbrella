@@ -9,8 +9,7 @@ import {
 } from '$lib/schemas/collector';
 import { SmsSchema } from '$lib/schemas/sms';
 
-import { isReladedToAMessage } from '$utils/patient';
-import { messages } from '$server/db/schema/messages';
+import { type Message, messages } from '$server/db/schema/messages';
 import { responses } from '$server/db/schema/responses';
 import { CategoryMessage, TypeMessage } from '$server/utils/collector';
 
@@ -37,6 +36,23 @@ export const POST = (async ({ request, locals }) => {
   if (!patient) {
     error(404, { message: 'Numéro invalid' });
   }
+
+  const isReladedToAMessage = async (args: { patientId: string }): Promise<Message[]> => {
+    const { patientId } = args;
+
+    const patient = await db.query.patients.findFirst({
+      where: (patient, { eq }) => eq(patient.id, patientId),
+      with: {
+        messages: true,
+      },
+    });
+
+    if (!patient) {
+      return [];
+    }
+
+    return patient.messages;
+  };
 
   const runner = openai.beta.chat.completions.runTools({
     model: 'gpt-4-turbo',

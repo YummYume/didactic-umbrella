@@ -26,8 +26,6 @@
                 await update();
                 isSubmit = false;
 
-                console.log(result);
-
                 if (result.type === 'success') {
                     toast.success('Message envoyé avec succès');
                 }
