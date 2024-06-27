@@ -13,6 +13,7 @@ const config = {
       $server: './src/lib/server',
       $types: './src/lib/types',
       $db: './src/lib/server/db',
+      $sass: './src/lib/sass',
     },
   },
 };

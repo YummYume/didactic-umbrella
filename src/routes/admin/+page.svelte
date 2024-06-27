@@ -1,4 +1,9 @@
 <script lang="ts">
+    import 'driver.js/dist/driver.css';
+
+    import { driver } from 'driver.js';
+    import { onMount } from 'svelte';
+
     import { page } from '$app/stores';
     import * as Pagination from '$lib/components/ui/pagination';
     import * as Select from '$lib/components/ui/select/index.js';
@@ -9,7 +14,8 @@
     import Separator from '$components/ui/separator/separator.svelte';
 
     import IconUnexpected from '~icons/heroicons/bell-alert-solid';
-    import IconPending from '~icons/heroicons/cloud-arrow-down-solid';
+    import IconPending from '~icons/heroicons/chat-bubble-oval-left-ellipsis-solid';
+    import IconOk from '~icons/heroicons/check-circle-solid';
     import IconunReachable from '~icons/heroicons/phone-x-mark-solid';
     import IconCheck from '~icons/lucide/check';
     import IconChevronLeft from '~icons/lucide/chevron-left';
@@ -25,13 +31,14 @@
     const buttonsLabel = {
         enrole: 'Enrôler un patient',
         download: 'Télécharger le tableau',
-        import: 'Importer un fichier',
+        import: 'Importer des fichiers',
     };
 
     import { Input } from '$lib/components/ui/input/index.js';
     import { Label } from '$lib/components/ui/label/index.js';
     import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
 
+    const STATUS_OK = 'ok';
     const STATUS_PENDING = 'pending';
     const STATUS_UNEXPECTED = 'unexpected';
     const STATUS_UNREACHABLE = 'unreachable';
@@ -117,10 +124,120 @@
             label: 'J+2000',
         },
     ];
+
+    onMount(() => {
+        const driverObj = driver({
+            doneBtnText: 'Terminé',
+            nextBtnText: 'Suivant',
+            popoverClass: 'driverjs-theme',
+            prevBtnText: 'Précédent',
+            showProgress: true,
+            steps: [
+                {
+                    element: `[aria-label="${buttonsLabel.enrole}"]`,
+                    popover: {
+                        title: buttonsLabel.enrole,
+                        description: 'Enrôlez un patient en cliquant sur ce bouton.',
+                        side: 'left',
+                        align: 'start',
+                    },
+                },
+                {
+                    element: `[aria-label="${buttonsLabel.import}"]`,
+                    popover: {
+                        title: buttonsLabel.import,
+                        description: 'Importez un ou plusieurs fichiers en cliquant sur ce bouton.',
+                        side: 'left',
+                        align: 'start',
+                    },
+                },
+                {
+                    element: `[aria-label="${buttonsLabel.download}"]`,
+                    popover: {
+                        title: buttonsLabel.download,
+                        description: 'Téléchargez le contenu du tableau en cliquant sur ce bouton.',
+                        side: 'left',
+                        align: 'start',
+                    },
+                },
+                {
+                    element: ':has(>[type="search"])',
+                    popover: {
+                        title: 'Recherche',
+                        description:
+                            "Entrez n'importe quel mot(s) clé(s) pour filtrer les résultats du tableau.",
+                        side: 'left',
+                        align: 'start',
+                    },
+                },
+                {
+                    element: '[data-toggle-group-root]',
+                    popover: {
+                        title: 'Indicateurs de statut',
+                        description:
+                            'Par défaut, tous les statuts sont affichés. Cliquez sur une icône pour filtrer les résultats par statut.',
+                        side: 'left',
+                        align: 'start',
+                    },
+                },
+                {
+                    element: `[data-toggle-group-root] [data-value="${STATUS_OK}"]`,
+                    popover: {
+                        title: 'Coche grise',
+                        description: 'La demande du patient a bien été traitée.',
+                        side: 'left',
+                        align: 'start',
+                    },
+                },
+                {
+                    element: `[data-toggle-group-root] [data-value="${STATUS_PENDING}"]`,
+                    popover: {
+                        title: 'Bulle jaune',
+                        description:
+                            "Le patient a répondu à une question qu'on lui a posé manuellement, ou il a envoyé un document.",
+                        side: 'left',
+                        align: 'start',
+                    },
+                },
+                {
+                    element: `[data-toggle-group-root] [data-value="${STATUS_UNEXPECTED}"]`,
+                    popover: {
+                        title: 'Cloche orange',
+                        description:
+                            "Le patient ne va pas bien, ou sa réponse n'a pas étée comprise.",
+                        side: 'left',
+                        align: 'start',
+                    },
+                },
+                {
+                    element: `[data-toggle-group-root] [data-value="${STATUS_UNREACHABLE}"]`,
+                    popover: {
+                        title: 'Téléphone bleu',
+                        description:
+                            'Le suivi est impossible par SMS car le numéro de téléphone du patient est invalide, ou alors un problème technique interne est survenu.',
+                        side: 'left',
+                        align: 'start',
+                    },
+                },
+                {
+                    element: '#tabs',
+                    popover: {
+                        title: 'Onglets',
+                        description:
+                            'Utilisez les onglets pour afficher uniquement les résultats à une étape spécifique (ou toutes).',
+                        side: 'left',
+                        align: 'start',
+                    },
+                },
+            ],
+        });
+
+        driverObj.drive();
+    });
 </script>
 
 <div class="container">
-    <ul class="flex flex-wrap gap-2 py-4">
+    <ul class="flex flex-wrap gap-3 py-4">
         <li>
             <Tooltip.Root>
                 <Tooltip.Trigger asChild let:builder
@@ -158,7 +275,7 @@
             </Tooltip.Root>
         </li>
         <li class="sm:mx-auto">
-            <div class="flex gap-2">
+            <div class="flex gap-2.5">
                 <Label class="sr-only" for="search">Recherche</Label>
                 <Input
                     class="max-w-sm"
@@ -173,14 +290,17 @@
         </li>
         <li>
             <ToggleGroup.Root type="multiple" variant="outline">
-                <ToggleGroup.Item value="{STATUS_PENDING}" aria-label="Basculer statut en attente">
-                    <IconUnexpected class="size-4 text-orange-500" />
+                <ToggleGroup.Item value="{STATUS_OK}" aria-label="Basculer statut OK">
+                    <IconOk class="size-4 text-neutral-500" />
+                </ToggleGroup.Item>
+                <ToggleGroup.Item value="{STATUS_PENDING}" aria-label="Basculer statut innatendu">
+                    <IconPending class="size-4 text-yellow-500" />
                 </ToggleGroup.Item>
                 <ToggleGroup.Item
                     value="{STATUS_UNEXPECTED}"
-                    aria-label="Basculer statut innatendu"
+                    aria-label="Basculer statut en attente"
                 >
-                    <IconPending class="size-4 text-yellow-500" />
+                    <IconUnexpected class="size-4 text-orange-500" />
                 </ToggleGroup.Item>
                 <ToggleGroup.Item
                     value="{STATUS_UNREACHABLE}"
@@ -194,6 +314,7 @@
 
     <ul
         class="grid h-10 w-full grid-cols-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground"
+        id="tabs"
     >
         {#each tabs as tab}
             <li class="contents">
@@ -250,7 +371,7 @@
 
     <Separator />
 
-    <div class="mt-8 grid items-center gap-2 sm:flex">
+    <div class="mt-8 grid items-center gap-2.5 sm:flex">
         <Select.Root portal="{null}">
             <Select.Trigger class="w-[180px]">
                 <Select.Value placeholder="Eléments par page" />
