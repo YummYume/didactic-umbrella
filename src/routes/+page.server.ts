@@ -2,6 +2,6 @@ import type { PageServerLoad } from './$types';
 
 export const load = (async () => {
   return {
-    title: 'Hackathon 2024',
+    title: 'La solution de dialogue automatisé',
   };
 }) satisfies PageServerLoad;
