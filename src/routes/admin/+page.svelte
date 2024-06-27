@@ -127,6 +127,7 @@
 
     onMount(() => {
         const driverObj = driver({
+            allowClose: false,
             doneBtnText: 'Terminé',
             nextBtnText: 'Suivant',
             popoverClass: 'driverjs-theme',
