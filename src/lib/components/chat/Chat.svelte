@@ -1,6 +1,4 @@
 <script context="module" lang="ts">
-    import Markdown from 'svelte-exmarkdown';
-
     import type { Snippet } from 'svelte';
     import type { EventHandler, HTMLAttributes } from 'svelte/elements';
 
@@ -55,6 +53,8 @@
 </script>
 
 <script lang="ts">
+    import Markdown from 'svelte-exmarkdown';
+
     let {
         messages,
         currentMessage = $bindable(null),

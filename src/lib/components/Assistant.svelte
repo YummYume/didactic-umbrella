@@ -197,6 +197,13 @@
             assistantStatus = 'available';
         }
     };
+
+    $effect(() => {
+        return () => {
+            // Abort the current request when the component is destroyed
+            abortController.abort();
+        };
+    });
 </script>
 
 {#if opened}

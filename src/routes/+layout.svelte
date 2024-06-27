@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import '../app.scss';
 
     import { mode, ModeWatcher } from 'mode-watcher';
@@ -13,8 +13,19 @@
     import HelpButton from '$components/HelpButton.svelte';
     import Button from '$components/ui/button/button.svelte';
 
-    const flash = getFlash(page);
     const { children } = $props();
+
+    const flash = getFlash(page);
+    const defaultMeta = {
+        description:
+            "L'application de gestion de patients aidée par l'IA pour les professionnels de la santé.",
+        robots: 'noindex, nofollow',
+    };
+
+    let meta = $derived({
+        ...defaultMeta,
+        ...$page.data.seo?.meta,
+    });
 
     $effect(() => {
         if ($flash) {
@@ -41,16 +52,12 @@
 
 <svelte:head>
     {#key $page.data.seo}
-        {#if $page.data.seo?.title}
-            <title>{$page.data.seo.title}</title>
-        {/if}
+        <title>{$page.data.seo?.title ?? 'Hackathon 2024'}</title>
     {/key}
 
-    {#if $page.data.seo?.meta}
-        {#each Object.entries($page.data.seo.meta) as [name, content] (name)}
-            <meta {name} {content} />
-        {/each}
-    {/if}
+    {#each Object.entries(meta) as [name, content] (name)}
+        <meta {name} {content} />
+    {/each}
 </svelte:head>
 
 <ModeWatcher />

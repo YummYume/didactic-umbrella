@@ -91,8 +91,6 @@ export const POST = (async ({ request, locals }) => {
       // Execute the query
       const results = await qb.execute();
 
-      console.log('results:', results);
-
       return results;
     } catch (e) {
       const rawQuery = qb?.toString();
@@ -109,9 +107,6 @@ export const POST = (async ({ request, locals }) => {
   const generatePatientUrl = (args: AssistantGeneratePatientUrlArgsSchemaType) => {
     return `${ORIGIN}/patient/${args.patientId}`;
   };
-
-  // @ts-expect-error ekfiaigbo
-  console.log('toJSONSchema', toJSONSchema({ schema: AssistantQueryRecordsArgsSchema }));
 
   const stream = locals.openai.beta.chat.completions.runTools({
     model: 'gpt-4-turbo',
