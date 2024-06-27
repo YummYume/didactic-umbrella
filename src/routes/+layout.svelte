@@ -9,11 +9,15 @@
     import { onNavigate } from '$app/navigation';
     import { page } from '$app/stores';
     import logo from '$lib/assets/logo.png';
+    import * as Sheet from '$lib/components/ui/sheet';
+    import * as Tooltip from '$lib/components/ui/tooltip';
 
+    import Assistant from '$components/Assistant.svelte';
     import DarkModeSwitch from '$components/DarkModeSwitch.svelte';
     import HelpButton from '$components/HelpButton.svelte';
     import Button from '$components/ui/button/button.svelte';
 
+    import IconAssistant from '~icons/lucide/bot-message-square';
     const { children, data } = $props();
 
     const flash = getFlash(page);
@@ -82,6 +86,30 @@
                 {:else}
                     <Button href="/login" variant="ghost">Connexion</Button>
                 {/if}
+            </li>
+            <li>
+                <Sheet.Root>
+                    <Sheet.Trigger>
+                        <Tooltip.Root>
+                            <Tooltip.Trigger asChild let:builder
+                                ><Button
+                                    aria-label="Discuter avec l'assistant"
+                                    builders="{[builder]}"
+                                    size="icon"
+                                    variant="ghost"
+                                >
+                                    <IconAssistant class="size-6" />
+                                </Button></Tooltip.Trigger
+                            >
+                            <Tooltip.Content>
+                                <p>Discuter avec l'assistant</p>
+                            </Tooltip.Content>
+                        </Tooltip.Root>
+                    </Sheet.Trigger>
+                    <Sheet.Content>
+                        <Assistant opened />
+                    </Sheet.Content>
+                </Sheet.Root>
             </li>
             <li>
                 <HelpButton />
