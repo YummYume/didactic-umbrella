@@ -1,8 +1,6 @@
 <script lang="ts">
     import 'driver.js/dist/driver.css';
 
-    import { onMount } from 'svelte';
-
     import { page } from '$app/stores';
     import { Input } from '$lib/components/ui/input/index.js';
     import { Label } from '$lib/components/ui/label/index.js';
@@ -11,17 +9,12 @@
     import * as Table from '$lib/components/ui/table/index.js';
     import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
     import * as Tooltip from '$lib/components/ui/tooltip';
-    import { ACTION_DOWNLOAD, ACTION_ENROLE, ACTION_IMPORT } from '$lib/Enum/actions';
-    import {
-        STATUS_OK,
-        STATUS_PENDING,
-        STATUS_UNEXPECTED,
-        STATUS_UNREACHABLE,
-    } from '$lib/Enum/status';
+    import { Actions } from '$lib/enums/actions';
+    import { Status } from '$lib/enums/status';
 
     import Button from '$components/ui/button/button.svelte';
     import Separator from '$components/ui/separator/separator.svelte';
-    import { driverObj } from '$utils/driver';
+    import { driverjs } from '$utils/driver';
 
     import IconUnexpected from '~icons/heroicons/bell-alert-solid';
     import IconPending from '~icons/heroicons/chat-bubble-oval-left-ellipsis-solid';
@@ -51,7 +44,7 @@
             firstname: 'John',
             name: 'Doe',
             smsTracking: true,
-            status: STATUS_UNEXPECTED,
+            status: Status.Unexpected,
             step: '',
             tel: '07 89 71 49 59',
         },
@@ -60,7 +53,7 @@
             firstname: 'John',
             name: 'Doe',
             smsTracking: true,
-            status: STATUS_PENDING,
+            status: Status.Pending,
             step: 'J0',
             tel: '07 89 71 49 59',
         },
@@ -69,7 +62,7 @@
             firstname: 'Jane',
             name: 'Doe',
             smsTracking: false,
-            status: STATUS_UNREACHABLE,
+            status: Status.Unreachable,
             step: 'J-5',
             tel: '01 85 09 01 81',
         },
@@ -120,12 +113,12 @@
         },
     ];
 
-    onMount(() => {
+    $effect(() => {
         if (document.cookie.includes('visited')) {
             return;
         }
 
-        driverObj.drive();
+        driverjs.drive();
 
         document.cookie = 'visited=true';
     });
@@ -136,36 +129,36 @@
         <li>
             <Tooltip.Root>
                 <Tooltip.Trigger asChild let:builder
-                    ><Button aria-label="{ACTION_ENROLE}" builders="{[builder]}" size="icon"
+                    ><Button aria-label="{Actions.Enrole}" builders="{[builder]}" size="icon"
                         ><IconUserPlus class="size-6" /></Button
                     ></Tooltip.Trigger
                 >
                 <Tooltip.Content>
-                    <p>{ACTION_ENROLE}</p>
+                    <p>{Actions.Enrole}</p>
                 </Tooltip.Content>
             </Tooltip.Root>
         </li>
         <li>
             <Tooltip.Root>
                 <Tooltip.Trigger asChild let:builder
-                    ><Button aria-label="{ACTION_IMPORT}" builders="{[builder]}" size="icon"
+                    ><Button aria-label="{Actions.Import}" builders="{[builder]}" size="icon"
                         ><IconUpload class="size-6" /></Button
                     ></Tooltip.Trigger
                 >
                 <Tooltip.Content>
-                    <p>{ACTION_IMPORT}</p>
+                    <p>{Actions.Import}</p>
                 </Tooltip.Content>
             </Tooltip.Root>
         </li>
         <li>
             <Tooltip.Root>
                 <Tooltip.Trigger asChild let:builder
-                    ><Button aria-label="{ACTION_DOWNLOAD}" builders="{[builder]}" size="icon"
+                    ><Button aria-label="{Actions.Download}" builders="{[builder]}" size="icon"
                         ><IconDownload class="size-6" /></Button
                     ></Tooltip.Trigger
                 >
                 <Tooltip.Content>
-                    <p>{ACTION_DOWNLOAD}</p>
+                    <p>{Actions.Download}</p>
                 </Tooltip.Content>
             </Tooltip.Root>
         </li>
@@ -185,20 +178,20 @@
         </li>
         <li>
             <ToggleGroup.Root type="multiple" variant="outline">
-                <ToggleGroup.Item value="{STATUS_OK}" aria-label="Basculer statut OK">
+                <ToggleGroup.Item value="{Status.Ok}" aria-label="Basculer statut OK">
                     <IconOk class="size-4 text-neutral-500" />
                 </ToggleGroup.Item>
-                <ToggleGroup.Item value="{STATUS_PENDING}" aria-label="Basculer statut innatendu">
+                <ToggleGroup.Item value="{Status.Pending}" aria-label="Basculer statut innatendu">
                     <IconPending class="size-4 text-yellow-500" />
                 </ToggleGroup.Item>
                 <ToggleGroup.Item
-                    value="{STATUS_UNEXPECTED}"
+                    value="{Status.Unexpected}"
                     aria-label="Basculer statut en attente"
                 >
                     <IconUnexpected class="size-4 text-orange-500" />
                 </ToggleGroup.Item>
                 <ToggleGroup.Item
-                    value="{STATUS_UNREACHABLE}"
+                    value="{Status.Unreachable}"
                     aria-label="Basculer statut non-accessible"
                 >
                     <IconunReachable class="size-4 text-blue-500" />
@@ -240,11 +233,11 @@
             {#each rows as row, i (i)}
                 <Table.Row>
                     <Table.Cell class="font-medium">
-                        {#if row.status === STATUS_PENDING}
+                        {#if row.status === Status.Pending}
                             <IconPending class="size-5 text-yellow-500" />
-                        {:else if row.status === STATUS_UNEXPECTED}
+                        {:else if row.status === Status.Unexpected}
                             <IconUnexpected class="size-5 text-orange-500" />
-                        {:else if row.status === STATUS_UNREACHABLE}
+                        {:else if row.status === Status.Unreachable}
                             <IconunReachable class="size-5 text-blue-500" />
                         {/if}
                     </Table.Cell>

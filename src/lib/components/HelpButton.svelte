@@ -1,7 +1,7 @@
 <script lang="ts">
     import * as Tooltip from '$lib/components/ui/tooltip';
 
-    import { driverObj } from '$utils/driver';
+    import { driverjs } from '$utils/driver';
 
     import IconCircleHelp from '~icons/lucide/circle-help';
 
@@ -14,7 +14,7 @@
             aria-label="Lancer la visite guidée"
             builders="{[builder]}"
             onclick="{() => {
-                driverObj.drive();
+                driverjs.drive();
             }}"
             size="icon"
             variant="ghost"

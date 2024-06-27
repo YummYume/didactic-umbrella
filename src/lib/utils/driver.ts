@@ -1,9 +1,9 @@
 import { driver } from 'driver.js';
 
-import { ACTION_DOWNLOAD, ACTION_ENROLE, ACTION_IMPORT } from '$lib/Enum/actions';
-import { STATUS_OK, STATUS_PENDING, STATUS_UNEXPECTED, STATUS_UNREACHABLE } from '$lib/Enum/status';
+import { Actions } from '$lib/enums/actions';
+import { Status } from '$lib/enums/status';
 
-export const driverObj = driver({
+export const driverjs = driver({
   doneBtnText: 'Terminé',
   nextBtnText: 'Suivant',
   popoverClass: 'driverjs-theme',
@@ -11,27 +11,27 @@ export const driverObj = driver({
   showProgress: true,
   steps: [
     {
-      element: `[aria-label="${ACTION_ENROLE}"]`,
+      element: `[aria-label="${Actions.Enrole}"]`,
       popover: {
-        title: ACTION_ENROLE,
+        title: Actions.Enrole,
         description: 'Enrôlez un patient en cliquant sur ce bouton.',
         side: 'left',
         align: 'start',
       },
     },
     {
-      element: `[aria-label="${ACTION_IMPORT}"]`,
+      element: `[aria-label="${Actions.Import}"]`,
       popover: {
-        title: ACTION_IMPORT,
+        title: Actions.Import,
         description: 'Importez un ou plusieurs fichiers en cliquant sur ce bouton.',
         side: 'left',
         align: 'start',
       },
     },
     {
-      element: `[aria-label="${ACTION_DOWNLOAD}"]`,
+      element: `[aria-label="${Actions.Download}"]`,
       popover: {
-        title: ACTION_DOWNLOAD,
+        title: Actions.Download,
         description: 'Téléchargez le contenu du tableau en cliquant sur ce bouton.',
         side: 'left',
         align: 'start',
@@ -57,7 +57,7 @@ export const driverObj = driver({
       },
     },
     {
-      element: `[data-toggle-group-root] [data-value="${STATUS_OK}"]`,
+      element: `[data-toggle-group-root] [data-value="${Status.Ok}"]`,
       popover: {
         title: 'Coche grise',
         description: 'La demande du patient a bien été traitée.',
@@ -66,7 +66,7 @@ export const driverObj = driver({
       },
     },
     {
-      element: `[data-toggle-group-root] [data-value="${STATUS_PENDING}"]`,
+      element: `[data-toggle-group-root] [data-value="${Status.Pending}"]`,
       popover: {
         title: 'Bulle jaune',
         description:
@@ -76,7 +76,7 @@ export const driverObj = driver({
       },
     },
     {
-      element: `[data-toggle-group-root] [data-value="${STATUS_UNEXPECTED}"]`,
+      element: `[data-toggle-group-root] [data-value="${Status.Unexpected}"]`,
       popover: {
         title: 'Cloche orange',
         description: "Le patient ne va pas bien, ou sa réponse n'a pas étée comprise.",
@@ -85,7 +85,7 @@ export const driverObj = driver({
       },
     },
     {
-      element: `[data-toggle-group-root] [data-value="${STATUS_UNREACHABLE}"]`,
+      element: `[data-toggle-group-root] [data-value="${Status.Unreachable}"]`,
       popover: {
         title: 'Téléphone bleu',
         description:

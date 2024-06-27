@@ -1,8 +1,9 @@
 <script lang="ts">
     import { Select as SelectPrimitive } from 'bits-ui';
-    import Check from 'lucide-svelte/icons/check';
 
     import { cn } from '$lib/utils.js';
+
+    import Check from '~icons/lucide/check';
 
     type $$Props = SelectPrimitive.ItemProps;
 

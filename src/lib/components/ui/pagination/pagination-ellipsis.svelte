@@ -1,7 +1,7 @@
 <script lang="ts">
-    import Ellipsis from 'lucide-svelte/icons/ellipsis';
-
     import { cn } from '$lib/utils.js';
+
+    import Ellipsis from '~icons/lucide/ellipsis';
 
     import type { HTMLAttributes } from 'svelte/elements';
 
