@@ -19,12 +19,16 @@ export const actions: Actions = {
       });
 
       if (!response.ok) {
-        return fail(response.status, await response.json());
+        return fail(response.status, {
+          previous: {
+            phone,
+            message,
+          },
+          error: (await response.json()).message,
+        });
       }
 
-      const data = await response.json();
-
-      return { smsSent: data };
+      return { success: 'SMS envoyé avec succès' };
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       return fail(500, {
@@ -32,7 +36,7 @@ export const actions: Actions = {
           phone,
           message,
         },
-        message: 'Failed to send SMS.',
+        error: "Erreur lors de l'envoi du SMS. Veuillez réessayer.",
       });
     }
   },
