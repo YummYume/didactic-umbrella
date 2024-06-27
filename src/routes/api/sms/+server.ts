@@ -1,8 +1,13 @@
 import { error, json } from '@sveltejs/kit';
 import { safeParse } from 'valibot';
 
-import { CategoryMessage, collectorSchema, TypeMessage } from '$lib/schemas/collector';
-import { smsSchema } from '$lib/schemas/sms';
+import {
+  CategoryMessage,
+  collectorSchema,
+  parseCollectorQueryArgs,
+  TypeMessage,
+} from '$lib/schemas/collector';
+import { SmsSchema } from '$lib/schemas/sms';
 
 import { db } from '$server/db';
 import { type Message, messages } from '$server/db/schema/messages';
@@ -15,7 +20,7 @@ import type { RequestHandler } from './$types';
  * @param args
  * @returns
  */
-async function reladedToAMessage(args: { patientId: string }): Promise<Message[]> {
+async function isReladedToAMessage(args: { patientId: string }): Promise<Message[]> {
   const { patientId } = args;
 
   const patient = await db.query.patients.findFirst({
@@ -39,7 +44,7 @@ export const POST = (async ({ request, locals }) => {
   const data = await request.json();
 
   // Validate the sms body
-  const validatedData = safeParse(smsSchema, data);
+  const validatedData = safeParse(SmsSchema, data);
 
   if (!validatedData.success) {
     error(400, { message: 'Veuillez saisir des données valide.', errors: validatedData.issues });
@@ -96,10 +101,10 @@ export const POST = (async ({ request, locals }) => {
       {
         type: 'function',
         function: {
-          name: 'reladedToAMessage',
+          name: 'isReladedToAMessage',
           description: 'Détermine si le message est lié à un message précédent.',
-          function: reladedToAMessage,
-          parse: JSON.parse,
+          function: isReladedToAMessage,
+          parse: parseCollectorQueryArgs,
           parameters: {
             type: 'object',
             properties: {

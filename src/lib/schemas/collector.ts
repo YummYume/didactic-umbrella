@@ -6,6 +6,7 @@ import {
   nullish,
   number,
   object,
+  parse,
   picklist,
   pipe,
   string,
@@ -38,3 +39,13 @@ export const collectorSchema = object({
 });
 
 export type CollectorSchemaType = InferOutput<typeof collectorSchema>;
+
+export const CollectorQueryArgsSchema = object({
+  patientId: string(),
+});
+
+export const parseCollectorQueryArgs = (args: string) => {
+  const jsonData = JSON.parse(args);
+
+  return parse(CollectorQueryArgsSchema, jsonData);
+};
