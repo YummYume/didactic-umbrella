@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { json, mysqlTable, varchar } from 'drizzle-orm/mysql-core';
+import { json, mysqlTable, text, varchar } from 'drizzle-orm/mysql-core';
 
 import { identifiable } from './extend-schema/identifiable';
 import { timestampable } from './extend-schema/timestampable';
@@ -8,7 +8,7 @@ import { users } from './users';
 
 export const messages = mysqlTable('messages', {
   ...identifiable,
-  content: json('content').notNull(),
+  content: text('content').notNull(),
   data: json('data').notNull(),
   userId: varchar('user_id', { length: 255 }).references(() => users.id),
   patientId: varchar('patient_id', { length: 255 }).references(() => patients.id),

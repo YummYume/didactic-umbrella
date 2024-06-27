@@ -1,10 +1,12 @@
 import { lucia } from '$server/auth';
+import { db } from '$server/db';
 import { openai } from '$server/openai';
 
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
   event.locals.openai = openai;
+  event.locals.db = db;
 
   const sessionId = event.cookies.get(lucia.sessionCookieName);
 

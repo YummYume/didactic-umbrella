@@ -1,5 +1,6 @@
 import type { Session, User } from 'lucia';
 import type OpenAI from 'openai';
+import type { db } from '$server/db';
 
 // for information about these interfaces
 declare global {
@@ -8,6 +9,7 @@ declare global {
     interface Locals {
       user: User | null;
       session: Session | null;
+      db: typeof db;
       openai: OpenAI;
     }
     interface PageData {

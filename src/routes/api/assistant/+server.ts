@@ -1,103 +1,163 @@
+import { toJSONSchema } from '@gcornut/valibot-json-schema';
 import { error } from '@sveltejs/kit';
+import { or } from 'drizzle-orm';
 import { safeParse } from 'valibot';
 
-import { AssistantMessageSchema } from '$lib/schemas/assistant';
-import { IntentSchema } from '$lib/schemas/intent';
+import { AssistantMessageSchema } from '$lib/schemas/message';
+import { ORIGIN } from '$env/static/private';
 
-import type { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
+import { MESSAGE_MAX_LENGTH } from '$utils/message';
+import { messages } from '$server/db/schema/messages';
+import { patients } from '$server/db/schema/patients';
+import { responses } from '$server/db/schema/responses';
+import {
+  AssistantGeneratePatientUrlArgsSchema,
+  type AssistantGeneratePatientUrlArgsSchemaType,
+  AssistantQueryRecordsArgsSchema,
+  type AssistantQueryRecordsArgsSchemaType,
+  parseAssistantGeneratePatientUrlArgs,
+  parseAssistantQueryRecordsArgs,
+} from '$server/schemas/assistant';
+import { AssistantAllowedFrom, buildOrderBy, buildSearch } from '$server/utils/assistant';
+
 import type { RequestHandler } from './$types';
 
-const DATA = [
-  {
-    id: 1,
-    name: 'John Doe',
-    phone: '0606123456',
-    lastProcessedAt: '2021-01-01',
-    data: {},
-  },
-  {
-    id: 2,
-    name: 'Jane Doe',
-    phone: '0606123457',
-    lastProcessedAt: '2021-01-02',
-    data: {},
-  },
-  {
-    id: 3,
-    name: 'John Smith',
-    phone: '0706123458',
-    lastProcessedAt: new Date().toISOString().split('T')[0],
-    data: {},
-  },
-];
+/**
+ * Default role given to the assistant.
+ */
+const ASSISTANT_ROLE_CONTENT = `Ton nom est Doc. Tu es un assistant médical pour le personel médical. Tu dois essayer de répondre au mieux possible à la requête du personnel médical. Il est important de ne pas donner de faux espoirs ou de fausses informations, et d'orienter le personnel médical du mieux possible. Tu peux aussi demander des informations supplémentaires si tu en as besoin. Tu peux et devrais répondre en Markdown pour formater tes réponses.`;
 
 export const POST = (async ({ request, locals }) => {
   const data = await request.json();
   const validatedData = safeParse(AssistantMessageSchema, data);
 
   if (!validatedData.success) {
-    console.error('issues', validatedData.issues);
-
     throw error(400, validatedData.issues.map((issue) => issue.message).join('\n'));
   }
 
-  const response = await locals.openai.chat.completions.create({
+  /**
+   * Function available to the assistant to query records from the database.
+   */
+  const queryRecords = async (args: AssistantQueryRecordsArgsSchemaType) => {
+    const select = locals.db.select();
+
+    let qb: undefined | ReturnType<(typeof select)['from']> = undefined;
+
+    try {
+      // First, select the table to query from
+      switch (args.from) {
+        case AssistantAllowedFrom.Patients:
+          qb = select.from(patients);
+
+          break;
+
+        case AssistantAllowedFrom.Messages:
+          qb = select.from(messages);
+
+          break;
+
+        case AssistantAllowedFrom.Responses:
+          qb = select.from(responses);
+
+          break;
+
+        default:
+          throw new Error(`Invalid table to query from: ${args.from}".`);
+      }
+
+      // Handle the search argument
+      const orX = buildSearch(args.search);
+
+      if (orX.length > 0) {
+        qb.where(or(...orX));
+      }
+
+      // Handle the orderBy argument
+      const orders = buildOrderBy(args.orderBy);
+
+      if (orders.length > 0) {
+        qb.orderBy(...orders);
+      }
+
+      // Handle the pagination
+      // PerPage is set to 10 by default
+      qb.limit(args.perPage);
+
+      // If the page is greater than 1 (the default), offset the query
+      if (args.page > 1) {
+        qb.offset((args.page - 1) * args.perPage);
+      }
+
+      // Execute the query
+      const results = await qb.execute();
+
+      console.log('results:', results);
+
+      return results;
+    } catch (e) {
+      const rawQuery = qb?.toString();
+
+      console.error(`Error while querying records.`, `Raw query: ${rawQuery}`);
+
+      throw e;
+    }
+  };
+
+  /**
+   * Function available to the assistant to generate a URL to a patient's profile.
+   */
+  const generatePatientUrl = (args: AssistantGeneratePatientUrlArgsSchemaType) => {
+    return `${ORIGIN}/patient/${args.patientId}`;
+  };
+
+  // @ts-expect-error ekfiaigbo
+  console.log('toJSONSchema', toJSONSchema({ schema: AssistantQueryRecordsArgsSchema }));
+
+  const stream = locals.openai.beta.chat.completions.runTools({
     model: 'gpt-4-turbo',
-    response_format: {
-      type: 'json_object',
-    },
+    max_tokens: MESSAGE_MAX_LENGTH,
+    stream: true,
     messages: [
       {
         role: 'system',
-        content: `Tu es responsable de trouver l'intention de la demande de l'utilisateur. Tu dois répondre dans un format JSON, indiquant les bonnes clés en fonction du schéma TypeScript suivant : { search: "clients|client|null", property?: "phone|name|undetermined", query?: "string", startDate?: "string", endDate?: "string" }. La seule clé obligatoire est "search". Elle peut être nulle si l'utilisateur n'a pas fait de demande spécifique. La clé "property" est facultative et peut représenter une propriété que l'utilisateur a utilisée pour rechercher un client. Elle peut également être "undetermined" pour spécifier que tous les champs doivent être vérifiés. La clé "query" doit être spécifiée pour nous informer de ce que l'on recherche sur la propriété donnée. Elle peut également ne pas être présente si elle n'est pas pertinente pour la demande de l'utilisateur. Les clés "startDate" et "endDate" sont toutes deux facultatives et peuvent représenter une date à laquelle l'utilisateur souhaite rechercher. Elles peuvent également représenter une plage entre la date de début et la date de fin. La date d'aujourd'hui est ${new Date().toISOString().split('T')[0]}. Tu ne dois pas ajouter de clés autres. Exemple : { search: "clients", property: "phone", query: "0706", startDate: "2021-01-01", endDate: "2021-01-31" }.`,
+        content: ASSISTANT_ROLE_CONTENT,
       },
+      ...validatedData.output.messages,
       { role: 'user', content: validatedData.output.content },
     ],
-  });
-  const choices = response.choices;
-  const choice = choices.at(-1);
-
-  let foundData: string | null = null;
-
-  if (choice && choice.message.content) {
-    const intent = safeParse(IntentSchema, JSON.parse(choice.message.content));
-
-    if (intent && intent.success) {
-      // const { search, property, query, startDate, endDate } = intent.output;
-
-      // TODO real search
-
-      foundData = DATA.reduce((acc, item) => `${acc} ${JSON.stringify(item)}`, '');
-    }
-  }
-
-  const messages: ChatCompletionMessageParam[] = [
-    {
-      role: 'system',
-      content: `Tu es un assistant médical pour le personel médical. Tu dois essayer de répondre au mieux possible à la requête du personnel. Dans certains cas, tu obtienderas des informations supplémentaires que nous te donnerons après analyse de la requête de l'utilisateur. Tu pourras alors les utiliser pour répondre à la demande de l'utilisateur.`,
-    },
-    ...validatedData.output.messages,
-    { role: 'user', content: validatedData.output.content },
-  ];
-
-  if (foundData) {
-    messages.push({
-      role: 'system',
-      content: `Voici les données trouvées qui pourraient correspondre à la demande de l'utilisateur : ${foundData}`,
-    });
-  }
-
-  // TODO use https://github.com/openai/openai-node?tab=readme-ov-file#automated-function-calls later
-  const stream = await locals.openai.chat.completions.create({
-    model: 'gpt-4',
-    messages,
-    stream: true,
+    tools: [
+      {
+        type: 'function',
+        function: {
+          name: 'queryRecords',
+          description:
+            'Fonction pour effectuer une requête dans la base de données en fonction de certains critères. Cette fonction retourne un tableau de résultats. Toutes les propriétés contenues dans `search` sont liées par un `OR` logique.',
+          function: queryRecords,
+          parse: parseAssistantQueryRecordsArgs,
+          // @ts-expect-error - Likely a bug in the type definition from the library
+          parameters: toJSONSchema({ schema: AssistantQueryRecordsArgsSchema }),
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'generatePatientUrl',
+          description:
+            "Fonction pour générer l'URL vers la fiche d'un patient en fonction de son ID. Cette fonction retourne une chaîne de caractères.",
+          function: generatePatientUrl,
+          parse: parseAssistantGeneratePatientUrlArgs,
+          // @ts-expect-error - Likely a bug in the type definition from the library
+          parameters: toJSONSchema({ schema: AssistantGeneratePatientUrlArgsSchema }),
+        },
+      },
+    ],
   });
 
   return new Response(stream.toReadableStream(), {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
     },
   });
 }) satisfies RequestHandler;
