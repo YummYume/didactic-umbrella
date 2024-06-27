@@ -1,17 +1,27 @@
 <script lang="ts">
     import 'driver.js/dist/driver.css';
 
-    import { driver } from 'driver.js';
     import { onMount } from 'svelte';
 
     import { page } from '$app/stores';
+    import { Input } from '$lib/components/ui/input/index.js';
+    import { Label } from '$lib/components/ui/label/index.js';
     import * as Pagination from '$lib/components/ui/pagination';
     import * as Select from '$lib/components/ui/select/index.js';
     import * as Table from '$lib/components/ui/table/index.js';
+    import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
     import * as Tooltip from '$lib/components/ui/tooltip';
+    import { ACTION_DOWNLOAD, ACTION_ENROLE, ACTION_IMPORT } from '$lib/Enum/actions';
+    import {
+        STATUS_OK,
+        STATUS_PENDING,
+        STATUS_UNEXPECTED,
+        STATUS_UNREACHABLE,
+    } from '$lib/Enum/status';
 
     import Button from '$components/ui/button/button.svelte';
     import Separator from '$components/ui/separator/separator.svelte';
+    import { driverObj } from '$utils/driver';
 
     import IconUnexpected from '~icons/heroicons/bell-alert-solid';
     import IconPending from '~icons/heroicons/chat-bubble-oval-left-ellipsis-solid';
@@ -25,23 +35,6 @@
     import IconUpload from '~icons/lucide/upload';
     import IconUserPlus from '~icons/lucide/user-plus';
     import IconX from '~icons/lucide/x';
-
-    const perPages = [10, 25, 50, 100];
-
-    const buttonsLabel = {
-        enrole: 'Enrôler un patient',
-        download: 'Télécharger le tableau',
-        import: 'Importer des fichiers',
-    };
-
-    import { Input } from '$lib/components/ui/input/index.js';
-    import { Label } from '$lib/components/ui/label/index.js';
-    import * as ToggleGroup from '$lib/components/ui/toggle-group/index.js';
-
-    const STATUS_OK = 'ok';
-    const STATUS_PENDING = 'pending';
-    const STATUS_UNEXPECTED = 'unexpected';
-    const STATUS_UNREACHABLE = 'unreachable';
 
     const rows = [
         {
@@ -81,6 +74,8 @@
             tel: '01 85 09 01 81',
         },
     ];
+
+    const perPages = [10, 25, 50, 100];
 
     const tabs = [
         {
@@ -126,114 +121,13 @@
     ];
 
     onMount(() => {
-        const driverObj = driver({
-            allowClose: false,
-            doneBtnText: 'Terminé',
-            nextBtnText: 'Suivant',
-            popoverClass: 'driverjs-theme',
-            prevBtnText: 'Précédent',
-            showProgress: true,
-            steps: [
-                {
-                    element: `[aria-label="${buttonsLabel.enrole}"]`,
-                    popover: {
-                        title: buttonsLabel.enrole,
-                        description: 'Enrôlez un patient en cliquant sur ce bouton.',
-                        side: 'left',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: `[aria-label="${buttonsLabel.import}"]`,
-                    popover: {
-                        title: buttonsLabel.import,
-                        description: 'Importez un ou plusieurs fichiers en cliquant sur ce bouton.',
-                        side: 'left',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: `[aria-label="${buttonsLabel.download}"]`,
-                    popover: {
-                        title: buttonsLabel.download,
-                        description: 'Téléchargez le contenu du tableau en cliquant sur ce bouton.',
-                        side: 'left',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: ':has(>[type="search"])',
-                    popover: {
-                        title: 'Recherche',
-                        description:
-                            "Entrez n'importe quel mot(s) clé(s) pour filtrer les résultats du tableau.",
-                        side: 'left',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: '[data-toggle-group-root]',
-                    popover: {
-                        title: 'Indicateurs de statut',
-                        description:
-                            'Par défaut, tous les statuts sont affichés. Cliquez sur une icône pour filtrer les résultats par statut.',
-                        side: 'left',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: `[data-toggle-group-root] [data-value="${STATUS_OK}"]`,
-                    popover: {
-                        title: 'Coche grise',
-                        description: 'La demande du patient a bien été traitée.',
-                        side: 'left',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: `[data-toggle-group-root] [data-value="${STATUS_PENDING}"]`,
-                    popover: {
-                        title: 'Bulle jaune',
-                        description:
-                            "Le patient a répondu à une question qu'on lui a posé manuellement, ou il a envoyé un document.",
-                        side: 'left',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: `[data-toggle-group-root] [data-value="${STATUS_UNEXPECTED}"]`,
-                    popover: {
-                        title: 'Cloche orange',
-                        description:
-                            "Le patient ne va pas bien, ou sa réponse n'a pas étée comprise.",
-                        side: 'left',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: `[data-toggle-group-root] [data-value="${STATUS_UNREACHABLE}"]`,
-                    popover: {
-                        title: 'Téléphone bleu',
-                        description:
-                            'Le suivi est impossible par SMS car le numéro de téléphone du patient est invalide, ou alors un problème technique interne est survenu.',
-                        side: 'left',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: '#tabs',
-                    popover: {
-                        title: 'Onglets',
-                        description:
-                            'Utilisez les onglets pour afficher uniquement les résultats à une étape spécifique (ou toutes).',
-                        side: 'left',
-                        align: 'start',
-                    },
-                },
-            ],
-        });
+        if (document.cookie.includes('visited')) {
+            return;
+        }
 
         driverObj.drive();
+
+        document.cookie = 'visited=true';
     });
 </script>
 
@@ -242,36 +136,36 @@
         <li>
             <Tooltip.Root>
                 <Tooltip.Trigger asChild let:builder
-                    ><Button aria-label="{buttonsLabel.enrole}" builders="{[builder]}" size="icon"
+                    ><Button aria-label="{ACTION_ENROLE}" builders="{[builder]}" size="icon"
                         ><IconUserPlus class="size-6" /></Button
                     ></Tooltip.Trigger
                 >
                 <Tooltip.Content>
-                    <p>{buttonsLabel.enrole}</p>
+                    <p>{ACTION_ENROLE}</p>
                 </Tooltip.Content>
             </Tooltip.Root>
         </li>
         <li>
             <Tooltip.Root>
                 <Tooltip.Trigger asChild let:builder
-                    ><Button aria-label="{buttonsLabel.import}" builders="{[builder]}" size="icon"
+                    ><Button aria-label="{ACTION_IMPORT}" builders="{[builder]}" size="icon"
                         ><IconUpload class="size-6" /></Button
                     ></Tooltip.Trigger
                 >
                 <Tooltip.Content>
-                    <p>{buttonsLabel.import}</p>
+                    <p>{ACTION_IMPORT}</p>
                 </Tooltip.Content>
             </Tooltip.Root>
         </li>
         <li>
             <Tooltip.Root>
                 <Tooltip.Trigger asChild let:builder
-                    ><Button aria-label="{buttonsLabel.download}" builders="{[builder]}" size="icon"
+                    ><Button aria-label="{ACTION_DOWNLOAD}" builders="{[builder]}" size="icon"
                         ><IconDownload class="size-6" /></Button
                     ></Tooltip.Trigger
                 >
                 <Tooltip.Content>
-                    <p>{buttonsLabel.download}</p>
+                    <p>{ACTION_DOWNLOAD}</p>
                 </Tooltip.Content>
             </Tooltip.Root>
         </li>
