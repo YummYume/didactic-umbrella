@@ -1,4 +1,5 @@
 import {
+  enum_,
   type InferOutput,
   integer,
   maxValue,
@@ -12,17 +13,14 @@ import {
   string,
 } from 'valibot';
 
-export const TypeMessage = {
-  responses: 'responses',
-  messages: 'messages',
-} as const;
+import { CategoryMessage, TypeMessage } from '$server/utils/collector';
 
-export const CategoryMessage = {
-  inaproppriate: 'inaproppriate',
-  normal: 'normal',
-  important: 'important',
-} as const;
+export const TypeMessageSchema = enum_(TypeMessage);
+export const CategoryMessageSchema = enum_(CategoryMessage);
 
+/**
+ * The schema for a message sent by the collector.
+ */
 export const collectorSchema = object({
   type: pipe(string(), picklist(Object.values(TypeMessage))),
   category: pipe(string(), picklist(Object.values(CategoryMessage))),
@@ -40,10 +38,18 @@ export const collectorSchema = object({
 
 export type CollectorSchemaType = InferOutput<typeof collectorSchema>;
 
+/**
+ * The schema for the query arguments of the collector.
+ */
 export const CollectorQueryArgsSchema = object({
   patientId: string(),
 });
 
+/**
+ * Parse the query arguments of the collector.
+ * @param args
+ * @returns
+ */
 export const parseCollectorQueryArgs = (args: string) => {
   const jsonData = JSON.parse(args);
 

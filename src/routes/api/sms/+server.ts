@@ -1,41 +1,20 @@
+import { toJSONSchema } from '@gcornut/valibot-json-schema';
 import { error, json } from '@sveltejs/kit';
 import { safeParse } from 'valibot';
 
 import {
-  CategoryMessage,
+  CollectorQueryArgsSchema,
   collectorSchema,
   parseCollectorQueryArgs,
-  TypeMessage,
 } from '$lib/schemas/collector';
 import { SmsSchema } from '$lib/schemas/sms';
 
-import { db } from '$server/db';
-import { type Message, messages } from '$server/db/schema/messages';
+import { isReladedToAMessage } from '$utils/patient';
+import { messages } from '$server/db/schema/messages';
 import { responses } from '$server/db/schema/responses';
+import { CategoryMessage, TypeMessage } from '$server/utils/collector';
 
 import type { RequestHandler } from './$types';
-
-/**
- * Determine if the message is related to a previous message
- * @param args
- * @returns
- */
-async function isReladedToAMessage(args: { patientId: string }): Promise<Message[]> {
-  const { patientId } = args;
-
-  const patient = await db.query.patients.findFirst({
-    where: (patient, { eq }) => eq(patient.id, patientId),
-    with: {
-      messages: true,
-    },
-  });
-
-  if (!patient) {
-    return [];
-  }
-
-  return patient.messages;
-}
 
 export const POST = (async ({ request, locals }) => {
   const { db, openai } = locals;
@@ -105,12 +84,8 @@ export const POST = (async ({ request, locals }) => {
           description: 'Détermine si le message est lié à un message précédent.',
           function: isReladedToAMessage,
           parse: parseCollectorQueryArgs,
-          parameters: {
-            type: 'object',
-            properties: {
-              patientId: { type: 'string' },
-            },
-          },
+          // @ts-expect-error - Likely a bug in the type definition from the library
+          parameters: toJSONSchema({ schema: CollectorQueryArgsSchema }),
         },
       },
     ],
