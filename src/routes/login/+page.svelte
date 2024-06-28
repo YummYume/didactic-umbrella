@@ -34,7 +34,7 @@
     </Form.Field>
 
     {#if $message}
-        <div class="m-2 text-red-600">{$message}</div>
+        <p role="status" aria-live="polite">{$message}</p>
     {/if}
 
     <Form.Button>Submit</Form.Button>

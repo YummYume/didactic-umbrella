@@ -4,6 +4,7 @@ import { sql } from 'drizzle-orm';
 import { db } from '../../../src/lib/server/db';
 import { NewUser, users } from '../../../src/lib/server/db/schema/users';
 
+// Error with oslo : https://github.com/napi-rs/node-rs/issues/816
 const password = await bcrypt.hash('xxx', 10);
 
 const newUsers: NewUser[] = [
