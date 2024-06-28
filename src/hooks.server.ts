@@ -7,6 +7,7 @@ import type { Handle } from '@sveltejs/kit';
 export const handle: Handle = async ({ event, resolve }) => {
   event.locals.openai = openai;
   event.locals.db = db;
+  event.locals.auth = lucia;
 
   const sessionId = event.cookies.get(lucia.sessionCookieName);
 

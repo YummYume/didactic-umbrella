@@ -5,6 +5,7 @@
     import { toast, Toaster } from 'svelte-sonner';
     import { getFlash } from 'sveltekit-flash-message';
 
+    import { enhance } from '$app/forms';
     import { onNavigate } from '$app/navigation';
     import { page } from '$app/stores';
     import logo from '$lib/assets/logo.png';
@@ -13,7 +14,7 @@
     import HelpButton from '$components/HelpButton.svelte';
     import Button from '$components/ui/button/button.svelte';
 
-    const { children } = $props();
+    const { children, data } = $props();
 
     const flash = getFlash(page);
     const defaultMeta = {
@@ -72,6 +73,16 @@
         </Button>
 
         <ul class="flex gap-0.5">
+            <li>
+                {#if data.user}
+                    <p>{data.user.email}</p>
+                    <form action="/?/logout" method="post" use:enhance>
+                        <Button type="submit" variant="ghost">Déconnexion</Button>
+                    </form>
+                {:else}
+                    <Button href="/login" variant="ghost">Connexion</Button>
+                {/if}
+            </li>
             <li>
                 <HelpButton />
             </li>

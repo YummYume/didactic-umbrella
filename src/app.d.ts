@@ -14,6 +14,7 @@ declare global {
       user: User | null;
       session: Session | null;
       db: typeof db;
+      auth: typeof lucia;
       openai: OpenAI;
     }
     interface PageData {

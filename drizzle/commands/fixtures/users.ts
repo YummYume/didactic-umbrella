@@ -1,10 +1,12 @@
+import bcrypt from 'bcrypt';
 import { sql } from 'drizzle-orm';
-import { Argon2id } from 'oslo/password';
 
+// import { Argon2id, Bcrypt } from 'oslo/password';
 import { db } from '../../../src/lib/server/db';
 import { NewUser, users } from '../../../src/lib/server/db/schema/users';
 
-const password = await new Argon2id().hash('xxx');
+// const password = await new Argon2id().hash('xxx');
+const password = await bcrypt.hash('xxx', 10);
 
 const newUsers: NewUser[] = [
   {

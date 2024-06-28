@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import { desc } from 'drizzle-orm';
 
 import { patients } from '$server/db/schema/patients';
@@ -5,7 +6,10 @@ import { patients } from '$server/db/schema/patients';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ locals }) => {
-  const { db } = locals;
+  const { db, session } = locals;
+  if (!session) {
+    redirect(302, '/login');
+  }
 
   const allPatients = await db.query.patients.findMany({
     orderBy: [desc(patients.createdAt)],

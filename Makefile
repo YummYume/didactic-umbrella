@@ -99,3 +99,10 @@ db-drop-migration: ## Drop the latest migration from the database
 
 db-create-migration: ## Create a new migration
 	$(EXECSVELTEKIT) bunx drizzle-kit generate --config=drizzle/drizzle.config.ts
+
+##@ Utils
+cmd: ## Run a command in the bun container
+	$(EXECSVELTEKIT) bunx dotenvx run -f .env -f .env.local --overload -- $(filter-out $@,$(MAKECMDGOALS))
+
+bun: ## Run a bun command
+	$(EXECSVELTEKIT)  bunx dotenvx run -f .env -f .env.local --overload -- bun $(filter-out $@,$(MAKECMDGOALS))
