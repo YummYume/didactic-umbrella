@@ -126,6 +126,9 @@
         }
     };
 
+    /**
+     * Downloads the summary as an image (PNG).
+     */
     const downloadSummary = async () => {
         if (downloadButtonDisabled || !summaryContainer) {
             toast.error(
@@ -138,6 +141,7 @@
         const dataUrl = await toPng(summaryContainer);
         const a = document.createElement('a');
 
+        // Create a fake download link and click it, then revoke the URL and remove the link
         a.style.display = 'none';
         a.href = dataUrl;
         a.download = `${patient.id}-resume.png`;
