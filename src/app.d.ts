@@ -18,7 +18,7 @@ declare global {
       openai: OpenAI;
     }
     interface PageData {
-      title?: string;
+      user?: User;
       flash?: { type: 'success' | 'error' | 'info' | 'warning'; message: string };
       seo?: {
         title?: string;

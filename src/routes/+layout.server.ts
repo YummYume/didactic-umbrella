@@ -9,6 +9,6 @@ export const load = loadFlash(async ({ locals }) => {
     seo: {
       title: 'Hackathon 2024',
     },
-    user,
+    user: user ?? undefined,
   };
 }) satisfies LayoutServerLoad;

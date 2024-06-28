@@ -1,13 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { fail } from 'sveltekit-superforms';
 
-import type { Actions, PageServerLoad } from './$types';
-
-export const load = (async () => {
-  return {
-    title: 'La solution de dialogue automatisé',
-  };
-}) satisfies PageServerLoad;
+import type { Actions } from './$types';
 
 export const actions: Actions = {
   logout: async (event) => {

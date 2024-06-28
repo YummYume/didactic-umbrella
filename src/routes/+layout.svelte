@@ -68,7 +68,7 @@
     class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 >
     <div class="container flex h-14 items-center justify-between gap-4">
-        <Button href="/" variant="ghost">
+        <Button href="{data.user ? '/admin' : '/'}" variant="ghost">
             <img alt="Calmedica" class="h-6" src="{logo}" />
         </Button>
 
