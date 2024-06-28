@@ -32,7 +32,6 @@
     let assistantStatus: AssistantStatus = $state('available');
     let answer = $state<string | null>(null);
     let messages: Message[] = $state([]);
-    let currentId = $derived(messages.at(-1)?.id ?? 0);
     let abortController = $state(new AbortController());
     let currentAssistantStatusText = $derived(assistantStatusText[assistantStatus]);
 
@@ -72,12 +71,12 @@
 
             // Add the user's message, as well as a temporary message indicating that the assistant is analyzing the message
             messages.push({
-                id: currentId,
+                id: messages.length,
                 sender: 'self',
                 content: validatedInput.output,
             });
             messages.push({
-                id: currentId,
+                id: messages.length,
                 sender: 'other',
                 content: 'Analyse du message en cours...',
             });
@@ -87,7 +86,11 @@
                 body: JSON.stringify({
                     content: validatedInput.output,
                     messages: [...messages]
-                        .filter((currentMessage) => currentMessage.id !== currentId)
+                        .filter(
+                            (currentMessage) =>
+                                currentMessage.id !== messages.at(-1)?.id &&
+                                currentMessage.id !== messages.at(-2)?.id,
+                        )
                         .map((currentMessage) => ({
                             content: currentMessage.content,
                             role: currentMessage.sender === 'other' ? 'assistant' : 'user',
@@ -214,7 +217,7 @@
             {messages}
             bind:currentMessage="{answer}"
             onsubmit="{sendMessage}"
-            busy="{assistantStatus !== 'available'}"
+            busy="{assistantStatus !== 'available' || answer?.trim() === ''}"
             allowMarkdown
         />
     </div>

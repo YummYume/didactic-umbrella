@@ -4,7 +4,6 @@ import { mysqlTable, varchar } from 'drizzle-orm/mysql-core';
 import { identifiable } from './extend-schema/identifiable';
 import { timestampable } from './extend-schema/timestampable';
 import { messages } from './messages';
-import { responses } from './responses';
 
 export const patients = mysqlTable('patients', {
   ...identifiable,
@@ -14,7 +13,6 @@ export const patients = mysqlTable('patients', {
 
 export const patientsRelations = relations(patients, ({ many }) => ({
   messages: many(messages),
-  responses: many(responses),
 }));
 
 export type Patient = typeof patients.$inferSelect;

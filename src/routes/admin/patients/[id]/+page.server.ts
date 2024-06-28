@@ -12,9 +12,9 @@ export const load = (async ({ locals, params }) => {
   const patient = await db.query.patients.findFirst({
     where: eq(patients.id, id),
     with: {
-      responses: {
+      messages: {
         with: {
-          messages: true,
+          responses: true,
         },
       },
     },
