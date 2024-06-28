@@ -15,6 +15,7 @@ export const actions: Actions = {
     if (!session) {
       return fail(401);
     }
+
     await auth.invalidateSession(session.id);
     const sessionCookie = auth.createBlankSessionCookie();
     event.cookies.set(sessionCookie.name, sessionCookie.value, {

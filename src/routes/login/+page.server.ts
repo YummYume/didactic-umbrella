@@ -38,13 +38,6 @@ export const actions: Actions = {
       return message(form, 'Adresse email ou mot de passe incorrect.');
     }
 
-    // const validPassword = await verify(existingUser.password, form.data.password, {
-    //   memoryCost: 19456,
-    //   timeCost: 2,
-    //   outputLen: 32,
-    //   parallelism: 1,
-    // });
-
     const validPassword = await bcrypt.compare(form.data.password, existingUser.password);
     if (!validPassword) {
       return message(form, 'Adresse email ou mot de passe incorrect.');
