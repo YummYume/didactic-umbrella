@@ -4,14 +4,14 @@ import { safeParse } from 'valibot';
 
 import {
   CollectorQueryArgsSchema,
-  collectorSchema,
+  CollectorSchema,
   parseCollectorQueryArgs,
 } from '$lib/schemas/collector';
 import { SmsSchema } from '$lib/schemas/sms';
 
 import { type Message, messages } from '$server/db/schema/messages';
 import { responses } from '$server/db/schema/responses';
-import { CategoryMessage, TypeMessage } from '$server/utils/collector';
+import { MessageCategory, MessageType } from '$server/utils/collector';
 
 import type { RequestHandler } from './$types';
 
@@ -34,7 +34,7 @@ export const POST = (async ({ request, locals }) => {
   });
 
   if (!patient) {
-    error(404, { message: 'Numéro invalid' });
+    error(404, { message: 'Numéro invalide.' });
   }
 
   const isReladedToAMessage = async (args: { patientId: string }): Promise<Message[]> => {
@@ -62,24 +62,24 @@ export const POST = (async ({ request, locals }) => {
     messages: [
       {
         role: 'system',
-        content: `Tu es un collecteur, ton objectif est d'analyser le message, 
-        tu devras collecter l'ensemble des informations qui le compose, 
+        content: `Tu es un collecteur, ton objectif est d'analyser le message,
+        tu devras collecter l'ensemble des informations qui le compose,
         fait attention au sarcasse, aux informations inutiles et aux informations manquantes,
         tu utilises uniquement le français,
         prends en compte uniquement les messages à caractères médicaux,
         si le message est une réponse à caractères humoristique, ou blague, tu dois renvoyer un message d'erreur: { "error": "Votre message est inapproprié." },
-        et le trier en fonction de son contenu sous le format JSON avec les clés suivantes : 
+        et le trier en fonction de son contenu sous le format JSON avec les clés suivantes :
         {
-          "type": "(${Object.values(TypeMessage).join(' ou ')})",
-          "category": "la catégorie du message (${Object.values(CategoryMessage).join(', ')})",
+          "type": "(${Object.values(MessageType).join(' ou ')})",
+          "category": "la catégorie du message (${Object.values(MessageCategory).join(', ')})",
           "levelImportance": "l'importance du message, est un nombre (1 à 5)",
           "subject": "le sujet du message",
           "intent": "l'intention du message",
-          "informations": {
+          "information": {
             "symptom": "le symptôme, la maladie ou le problème de santé mentionné (traduit en terme médical si possible)",
             "onset": "la date de début des symptômes ou de la maladie",
             "details": "Informations supplémentaires",
-            "complementInformations": "Informations complémentaires"
+            "extraInformation": "Informations complémentaires"
           },
           "relatedMessageId": "l'id du message lié, si seulement le message te semble être une réponse à un message précédent"
         }.
@@ -119,28 +119,29 @@ export const POST = (async ({ request, locals }) => {
 
   // Check if the final content is an error
   const value: { error: string } = JSON.parse(finalContent);
+
   if (value.error) {
     error(400, { message: 'Votre message est innaproprié.' });
   }
 
   // Validate the final content
-  const validatedDataIA = safeParse(collectorSchema, JSON.parse(finalContent));
-  if (!validatedDataIA.success) {
+  const validatedDataAi = safeParse(CollectorSchema, JSON.parse(finalContent));
+
+  if (!validatedDataAi.success) {
     error(500, {
       message: "Une erreur s'est produite, veuillez réessayer.",
     });
   }
 
   // Get the response
-  const iaResponse = validatedDataIA.output;
+  const aiResponse = validatedDataAi.output;
 
   // Save the response
-  if (iaResponse.type === TypeMessage.Responses && iaResponse.messageLinkId) {
+  if (aiResponse.type === MessageType.Response && aiResponse.relatedMessageId) {
     const newResponse = await db.insert(responses).values({
-      data: JSON.stringify(iaResponse),
+      data: aiResponse,
       content: validatedData.output.message,
-      patientId: patient.id,
-      messageId: iaResponse.messageLinkId,
+      messageId: aiResponse.relatedMessageId,
     });
 
     return json(newResponse, { status: 201, statusText: 'Votre réponse à été enregistré' });
@@ -148,7 +149,7 @@ export const POST = (async ({ request, locals }) => {
 
   // Save the message
   const newMessage = await db.insert(messages).values({
-    data: JSON.stringify(iaResponse),
+    data: aiResponse,
     content: validatedData.output.message,
     patientId: patient.id,
   });

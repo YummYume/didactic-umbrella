@@ -19,7 +19,7 @@
     import IconUnexpected from '~icons/heroicons/bell-alert-solid';
     import IconPending from '~icons/heroicons/chat-bubble-oval-left-ellipsis-solid';
     import IconOk from '~icons/heroicons/check-circle-solid';
-    import IconunReachable from '~icons/heroicons/phone-x-mark-solid';
+    import IconUnreachable from '~icons/heroicons/phone-x-mark-solid';
     import IconCheck from '~icons/lucide/check';
     import IconChevronLeft from '~icons/lucide/chevron-left';
     import IconChevronRight from '~icons/lucide/chevron-right';
@@ -29,47 +29,9 @@
     import IconUserPlus from '~icons/lucide/user-plus';
     import IconX from '~icons/lucide/x';
 
-    const rows = [
-        {
-            date: '24/06/2024 07:00:00',
-            firstname: 'John',
-            name: 'Doe',
-            smsTracking: true,
-            status: '',
-            step: 'J+1',
-            tel: '07 89 71 49 59',
-        },
-        {
-            date: '09/02/2024 07:00:00',
-            firstname: 'John',
-            name: 'Doe',
-            smsTracking: true,
-            status: Status.Unexpected,
-            step: '',
-            tel: '07 89 71 49 59',
-        },
-        {
-            date: '24/06/2024 07:00:00',
-            firstname: 'John',
-            name: 'Doe',
-            smsTracking: true,
-            status: Status.Pending,
-            step: 'J0',
-            tel: '07 89 71 49 59',
-        },
-        {
-            date: '09/02/2024 07:00:00',
-            firstname: 'Jane',
-            name: 'Doe',
-            smsTracking: false,
-            status: Status.Unreachable,
-            step: 'J-5',
-            tel: '01 85 09 01 81',
-        },
-    ];
+    const { data } = $props();
 
     const perPages = [10, 25, 50, 100];
-
     const tabs = [
         {
             href: '/admin/answers',
@@ -112,6 +74,22 @@
             label: 'J+2000',
         },
     ];
+
+    const getPatientStatus = (patient: (typeof data.allPatients)[0]) => {
+        if (patient.messages.length === 0) {
+            return Status.Unexpected;
+        }
+
+        if (patient.messages.at(-1)?.responses.length === 0) {
+            return Status.Pending;
+        }
+
+        if (patient.messages.every((message) => message.responses.length === 0)) {
+            return Status.Unreachable;
+        }
+
+        return Status.Ok;
+    };
 
     $effect(() => {
         if (document.cookie.includes('visited')) {
@@ -194,7 +172,7 @@
                     value="{Status.Unreachable}"
                     aria-label="Basculer statut non-accessible"
                 >
-                    <IconunReachable class="size-4 text-blue-500" />
+                    <IconUnreachable class="size-4 text-blue-500" />
                 </ToggleGroup.Item>
             </ToggleGroup.Root>
         </li>
@@ -223,30 +201,37 @@
             <Table.Row>
                 <Table.Head class="w-[100px]"></Table.Head>
                 <Table.Head>Etape</Table.Head>
-                <Table.Head>Prénom</Table.Head>
-                <Table.Head>Nom</Table.Head>
                 <Table.Head>Mobile</Table.Head>
                 <Table.Head>Suivi SMS</Table.Head>
             </Table.Row>
         </Table.Header>
         <Table.Body>
-            {#each rows as row, i (i)}
+            {#each data.allPatients as row (row.id)}
+                {@const hasSmsTracking = row.messages.length > 0}
+                {@const step =
+                    row.messages.length > 0
+                        ? Math.round(
+                              (row.updatedAt.getTime() - new Date().getTime()) / (1000 * 3600 * 24),
+                          )
+                        : null}
+                {@const status = getPatientStatus(row)}
+
                 <Table.Row>
                     <Table.Cell class="font-medium">
-                        {#if row.status === Status.Pending}
+                        <!-- TODO aria-label -->
+
+                        {#if status === Status.Pending}
                             <IconPending class="size-5 text-yellow-500" />
-                        {:else if row.status === Status.Unexpected}
+                        {:else if status === Status.Unexpected}
                             <IconUnexpected class="size-5 text-orange-500" />
-                        {:else if row.status === Status.Unreachable}
-                            <IconunReachable class="size-5 text-blue-500" />
+                        {:else if status === Status.Unreachable}
+                            <IconUnreachable class="size-5 text-blue-500" />
                         {/if}
                     </Table.Cell>
-                    <Table.Cell>{row.step}</Table.Cell>
-                    <Table.Cell>{row.firstname}</Table.Cell>
-                    <Table.Cell>{row.name}</Table.Cell>
-                    <Table.Cell>{row.tel}</Table.Cell>
+                    <Table.Cell>{step !== null ? `J+${step}` : ''}</Table.Cell>
+                    <Table.Cell><a href="{`/admin/patients/${row.id}`}">{row.phone}</a></Table.Cell>
                     <Table.Cell
-                        >{#if row.smsTracking}
+                        >{#if hasSmsTracking}
                             <IconCheck class="size-7 text-teal-500" />
                         {:else}
                             <IconX class="size-7 text-red-500" />

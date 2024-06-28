@@ -1,3 +1,4 @@
+import { seedMessages } from './fixtures/messages';
 import { seedPatients } from './fixtures/patients';
 import { seedUsers } from './fixtures/users';
 
@@ -7,6 +8,7 @@ async function loadFixtures() {
   try {
     await seedUsers();
     await seedPatients();
+    await seedMessages();
 
     console.log('Fixtures loaded successfully');
     process.exit(0);

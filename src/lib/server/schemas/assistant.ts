@@ -150,7 +150,7 @@ export type AssistantQueryRecordsArgsSchemaType = InferOutput<
  * Validate the arguments given by the assistant to generate an URL to a patient's profile.
  */
 export const AssistantGeneratePatientUrlArgsSchema = object({
-  patientId: string(),
+  patientIds: array(string()),
 });
 
 /**

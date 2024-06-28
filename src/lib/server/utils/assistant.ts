@@ -25,6 +25,8 @@ export enum AssistantAllowedPatientProperty {
 export enum AssistantAllowedMessageProperty {
   Content = 'content',
   Data = 'data',
+  PatientId = 'patientId',
+  UserId = 'userId',
 }
 
 /**
@@ -33,6 +35,8 @@ export enum AssistantAllowedMessageProperty {
 export enum AssistantAllowedResponseProperty {
   Content = 'content',
   Data = 'data',
+  MessageId = 'messageId',
+  UserId = 'userId',
 }
 
 /**

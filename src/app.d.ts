@@ -1,5 +1,6 @@
 import type { Session, User } from 'lucia';
 import type OpenAI from 'openai';
+import type { lucia } from '$server/auth';
 import type { db } from '$server/db';
 
 // for information about these interfaces

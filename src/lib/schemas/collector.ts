@@ -4,39 +4,38 @@ import {
   integer,
   maxValue,
   minValue,
-  nullish,
+  nullable,
   number,
   object,
   parse,
-  picklist,
   pipe,
   string,
 } from 'valibot';
 
-import { CategoryMessage, TypeMessage } from '$server/utils/collector';
+import { MessageCategory, MessageType } from '$server/utils/collector';
 
-export const TypeMessageSchema = enum_(TypeMessage);
-export const CategoryMessageSchema = enum_(CategoryMessage);
+export const TypeMessageSchema = enum_(MessageType);
+export const CategoryMessageSchema = enum_(MessageCategory);
 
 /**
  * The schema for a message sent by the collector.
  */
-export const collectorSchema = object({
-  type: pipe(string(), picklist(Object.values(TypeMessage))),
-  category: pipe(string(), picklist(Object.values(CategoryMessage))),
+export const CollectorSchema = object({
+  type: TypeMessageSchema,
+  category: CategoryMessageSchema,
   levelImportance: pipe(number(), integer(), minValue(1), maxValue(5)),
   subject: string(),
   intent: string(),
-  informations: object({
-    symptom: string(),
-    onset: string(),
-    details: string(),
-    complementInformations: string(),
+  information: object({
+    symptom: nullable(string()),
+    onset: nullable(string()),
+    details: nullable(string()),
+    extraInformation: nullable(string()),
   }),
-  messageLinkId: nullish(string()),
+  relatedMessageId: nullable(string()),
 });
 
-export type CollectorSchemaType = InferOutput<typeof collectorSchema>;
+export type CollectorSchemaType = InferOutput<typeof CollectorSchema>;
 
 /**
  * The schema for the query arguments of the collector.
