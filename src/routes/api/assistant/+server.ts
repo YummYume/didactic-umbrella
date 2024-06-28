@@ -27,7 +27,7 @@ import type { RequestHandler } from './$types';
  * Default role given to the assistant.
  */
 const ASSISTANT_ROLE_CONTENT = `
-  Ton nom est Doc. Tu es un assistant médical pour le personel médical. Tu dois essayer de répondre au mieux possible à la requête du personnel médical. Il est important de ne pas donner de faux espoirs ou de fausses informations, et d'orienter le personnel médical du mieux possible.
+  Ton nom est Doc. Tu es un assistant médical pour le personnel médical, qui sont les utilisateurs de cette application. Tu dois essayer de répondre au mieux possible à chaque requête soumise. Il est important de ne pas donner de faux espoirs ou de fausses informations, et d'orienter le personnel médical du mieux possible.
 
   Le personnel médical n'est pas habitué à l'informatique et aux nouvelles technologies, donc tu dois être patient et clair dans tes réponses. Tu peux aussi demander des informations supplémentaires si tu en as besoin.
 
@@ -121,8 +121,6 @@ export const POST = (async ({ request, locals }) => {
       // Execute the query
       const results = await qb.execute();
 
-      console.log('results', results);
-
       return results;
     } catch (e) {
       const rawQuery = qb?.toSQL();
@@ -141,7 +139,7 @@ export const POST = (async ({ request, locals }) => {
   };
 
   // @ts-expect-error - Likely a bug in the type definition from the library
-  const dataSchema = toJSONSchema({ schema: CollectorSchema });
+  const collectedDataSchema = toJSONSchema({ schema: CollectorSchema });
 
   const stream = locals.openai.beta.chat.completions.runTools({
     model: 'gpt-4-turbo',
@@ -164,7 +162,7 @@ export const POST = (async ({ request, locals }) => {
         type: 'function',
         function: {
           name: 'queryRecords',
-          description: `Fonction pour effectuer une requête dans la base de données en fonction de certains critères. Cette fonction retourne un tableau de résultats. Toutes les propriétés contenues dans "search" sont liées par un "OR" logique. La propriété "data" dans "messages" et "responses" contient le schéma suivant : ${dataSchema}.`,
+          description: `Fonction pour effectuer une requête dans la base de données en fonction de certains critères. Cette fonction retourne un tableau de résultats. Toutes les propriétés contenues dans "search" sont liées par un "OR" logique. La propriété "data" dans "messages" et "responses" contient le schéma suivant : ${collectedDataSchema}.`,
           function: queryRecords,
           parse: parseAssistantQueryRecordsArgs,
           // @ts-expect-error - Likely a bug in the type definition from the library

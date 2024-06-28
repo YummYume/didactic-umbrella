@@ -46,6 +46,7 @@
     "eslint-plugin-simple-import-sort": "^12.1.0",
     "eslint-plugin-svelte": "^2.41.0",
     "globals": "^15.6.0",
+    "html-to-image": "^1.11.11",
     "mode-watcher": "^0.3.1",
     "postcss": "^8.4.38",
     "prettier": "^3.3.2",
