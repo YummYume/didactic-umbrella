@@ -16,6 +16,7 @@
     import DarkModeSwitch from '$components/DarkModeSwitch.svelte';
     import HelpButton from '$components/HelpButton.svelte';
     import Button from '$components/ui/button/button.svelte';
+    import { driverjs, ROUTE_STEPS } from '$utils/driver';
 
     import IconAssistant from '~icons/lucide/bot-message-square';
     const { children, data } = $props();
@@ -25,6 +26,12 @@
         description:
             "L'application de gestion de patients aidée par l'IA pour les professionnels de la santé.",
         robots: 'noindex, nofollow',
+    };
+
+    const drive = () => {
+        const steps = ROUTE_STEPS[$page.url.pathname] ?? [];
+
+        driverjs.setSteps(steps);
     };
 
     let meta = $derived({
@@ -38,6 +45,8 @@
 
             $flash = undefined;
         }
+
+        drive();
     });
 
     onNavigate((navigation) => {
@@ -51,6 +60,12 @@
 
                 await navigation.complete;
             });
+        });
+    });
+
+    onNavigate((navigation) => {
+        navigation.complete.then(() => {
+            drive();
         });
     });
 </script>
@@ -87,30 +102,34 @@
                     <Button href="/login" variant="ghost">Connexion</Button>
                 {/if}
             </li>
-            <li>
-                <Sheet.Root>
-                    <Sheet.Trigger>
-                        <Tooltip.Root>
-                            <Tooltip.Trigger asChild let:builder
-                                ><Button
-                                    aria-label="Discuter avec l'assistant"
-                                    builders="{[builder]}"
-                                    size="icon"
-                                    variant="ghost"
-                                >
-                                    <IconAssistant class="size-6" />
-                                </Button></Tooltip.Trigger
-                            >
-                            <Tooltip.Content>
-                                <p>Discuter avec l'assistant</p>
-                            </Tooltip.Content>
-                        </Tooltip.Root>
-                    </Sheet.Trigger>
-                    <Sheet.Content>
-                        <Assistant opened />
-                    </Sheet.Content>
-                </Sheet.Root>
-            </li>
+
+            {#if data.user}
+                <li>
+                    <Sheet.Root>
+                        <Sheet.Trigger>
+                            <Tooltip.Root>
+                                <Tooltip.Trigger asChild let:builder>
+                                    <Button
+                                        aria-label="Discuter avec l'assistant"
+                                        builders="{[builder]}"
+                                        size="icon"
+                                        variant="ghost"
+                                    >
+                                        <IconAssistant class="size-6" />
+                                    </Button>
+                                </Tooltip.Trigger>
+                                <Tooltip.Content>
+                                    <p>Discuter avec l'assistant</p>
+                                </Tooltip.Content>
+                            </Tooltip.Root>
+                        </Sheet.Trigger>
+                        <Sheet.Content>
+                            <Assistant opened />
+                        </Sheet.Content>
+                    </Sheet.Root>
+                </li>
+            {/if}
+
             <li>
                 <HelpButton />
             </li>

@@ -12,6 +12,7 @@
     import { safeParse } from 'valibot';
 
     import { dev } from '$app/environment';
+    import * as Avatar from '$lib/components/ui/avatar/index.js';
     import { AssistantMessageContentSchema } from '$lib/schemas/message';
 
     import { AssistantError } from '$utils/error';
@@ -29,8 +30,15 @@
         typing: 'Écrit...',
     };
 
+    const assistantStatusColors = {
+        analyzing: 'bg-yellow-500',
+        available: 'bg-teal-500',
+        searching: 'bg-blue-500',
+        typing: 'bg-neutral-500',
+    };
+
     let assistantStatus: AssistantStatus = $state('available');
-    let answer = $state<string | null>(null);
+    let answer = $state('');
     let messages: Message[] = $state([]);
     let abortController = $state(new AbortController());
     let currentAssistantStatusText = $derived(assistantStatusText[assistantStatus]);
@@ -59,10 +67,7 @@
             const validatedInput = safeParse(AssistantMessageContentSchema, answer);
 
             if (!validatedInput.success) {
-                throw new AssistantError(
-                    validatedInput.issues.map((i) => i.message).join('\n'),
-                    true,
-                );
+                throw new AssistantError(validatedInput.issues.map((i) => i.message).join('\n'));
             }
 
             // Clear the input and set the assistant status to analyzing
@@ -110,7 +115,6 @@
             if (!response.ok || !response.body) {
                 throw new AssistantError(
                     "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.",
-                    true,
                 );
             }
 
@@ -167,10 +171,16 @@
 
                 throw new AssistantError(
                     "Une erreur est survenue lors de la lecture de la réponse de l'assistant. Veuillez réessayer.",
-                    true,
                 );
             }
         } catch (e) {
+            const lastMessage = messages.at(-1);
+
+            if (lastMessage && lastMessage.sender === 'other') {
+                lastMessage.content =
+                    "Je n'ai pas pu vous répondre à cause d'une erreur inattendue. Vous pouvez réessayer à tout moment.";
+            }
+
             // Handle errors (assistant errors are handled differently)
             if (!(e instanceof AssistantError)) {
                 if (dev) {
@@ -182,15 +192,6 @@
                 );
 
                 return;
-            }
-
-            if (e.replaceLastMessage) {
-                const lastMessage = messages.at(-1);
-
-                if (lastMessage && lastMessage.sender === 'other') {
-                    lastMessage.content =
-                        "Je n'ai pas pu vous répondre à cause d'une erreur inattendue. Vous pouvez réessayer à tout moment.";
-                }
             }
 
             // We know the message is safe to display
@@ -210,15 +211,25 @@
 </script>
 
 {#if opened}
-    <div>
-        <h2>Assistant</h2>
-        <p>{currentAssistantStatusText}</p>
-        <Chat
-            {messages}
-            bind:currentMessage="{answer}"
-            onsubmit="{sendMessage}"
-            busy="{assistantStatus !== 'available' || answer?.trim() === ''}"
-            allowMarkdown
-        />
+    <div class="flex items-center gap-2 pb-2">
+        <Avatar.Root>
+            <Avatar.Image src="doc.webp" alt="Le Doc" />
+            <Avatar.Fallback>LD</Avatar.Fallback>
+        </Avatar.Root>
+        <p>Le Doc</p>
+        <p class="flex items-center gap-2">
+            <span class="size-1.5 rounded-full {assistantStatusColors[assistantStatus]}"></span>
+            {currentAssistantStatusText}
+        </p>
     </div>
+
+    <Chat
+        allowMarkdown
+        busy="{assistantStatus !== 'available'}"
+        class="max-h-[calc(100%-3rem)] overflow-auto px-0.5"
+        bind:currentMessage="{answer}"
+        disabled="{answer?.trim() === ''}"
+        onsubmit="{sendMessage}"
+        {messages}
+    />
 {/if}

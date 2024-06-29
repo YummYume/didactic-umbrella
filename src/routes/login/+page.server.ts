@@ -9,6 +9,7 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const { session } = locals;
+
   if (session) {
     redirect(302, '/');
   }
@@ -39,17 +40,19 @@ export const actions: Actions = {
     }
 
     const validPassword = await bcrypt.compare(form.data.password, existingUser.password);
+
     if (!validPassword) {
       return message(form, 'Adresse email ou mot de passe incorrect.');
     }
 
     const session = await auth.createSession(existingUser.id, {});
     const sessionCookie = auth.createSessionCookie(session.id);
+
     cookies.set(sessionCookie.name, sessionCookie.value, {
       path: '.',
       ...sessionCookie.attributes,
     });
 
-    redirect(302, '/');
+    redirect(302, '/admin');
   },
 };

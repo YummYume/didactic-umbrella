@@ -1,15 +1,44 @@
-import { driver } from 'driver.js';
+import { driver, type DriveStep } from 'driver.js';
 
 import { Actions } from '$lib/enums/actions';
 import { Status } from '$lib/enums/status';
 
-export const driverjs = driver({
-  doneBtnText: 'Terminé',
-  nextBtnText: 'Suivant',
-  popoverClass: 'driverjs-theme',
-  prevBtnText: 'Précédent',
-  showProgress: true,
-  steps: [
+const BASE_STEPS: DriveStep[] = [
+  {
+    element: `[aria-label="${Actions.Assistant}"]`,
+    popover: {
+      title: Actions.Assistant,
+      description:
+        "Discutez sur n'importe quelle page avec l'assistant IA en cliquant sur ce boutton. Il pourra vous aider à trouver toute information à laquelle vous avez le droit d'accéder.",
+      side: 'left',
+      align: 'start',
+    },
+  },
+  {
+    element: `[aria-label="${Actions.Help}"]`,
+    popover: {
+      title: Actions.Help,
+      description:
+        'Rejouez cette visite guidée en cliquant sur ce bouton, si jamais vous vous sentez perdu(e).',
+      side: 'left',
+      align: 'start',
+    },
+  },
+  {
+    element: `[aria-label*="Basculer en thème"]`,
+    popover: {
+      title: "Basculer le thème de l'application",
+      description: 'Basculez entre le thème clair et sombre en cliquant sur ce bouton.',
+      side: 'left',
+      align: 'start',
+    },
+  },
+];
+
+export const ROUTE_STEPS: Record<string, DriveStep[]> = {
+  '/': BASE_STEPS,
+  '/admin': [
+    ...BASE_STEPS,
     {
       element: `[aria-label="${Actions.Enrole}"]`,
       popover: {
@@ -40,7 +69,7 @@ export const driverjs = driver({
     {
       element: ':has(>[type="search"])',
       popover: {
-        title: 'Recherche',
+        title: 'Rechercher',
         description: "Entrez n'importe quel mot(s) clé(s) pour filtrer les résultats du tableau.",
         side: 'left',
         align: 'start',
@@ -105,4 +134,13 @@ export const driverjs = driver({
       },
     },
   ],
+};
+
+export const driverjs = driver({
+  doneBtnText: 'Terminé',
+  nextBtnText: 'Suivant',
+  popoverClass: 'driverjs-theme',
+  prevBtnText: 'Précédent',
+  showProgress: true,
+  progressText: '{{current}} sur {{total}}',
 });
