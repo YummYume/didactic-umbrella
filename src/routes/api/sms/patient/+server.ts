@@ -1,12 +1,11 @@
 import { error, json } from '@sveltejs/kit';
 import { safeParse } from 'valibot';
 
-import { CollectorSchema } from '$lib/schemas/collector';
 import { SmsSchema } from '$lib/schemas/sms';
 
 import { messages } from '$server/db/schema/messages';
 import { responses } from '$server/db/schema/responses';
-import { collectorRunner, MessageType } from '$server/utils/collector';
+import { collectorRunner, CollectorSchema, MessageType } from '$server/utils/collector';
 
 import type { RequestHandler } from './$types';
 

@@ -1,9 +1,20 @@
 import { toJSONSchema } from '@gcornut/valibot-json-schema';
+import { parse } from 'postcss';
+import {
+  enum_,
+  type InferOutput,
+  integer,
+  maxValue,
+  minValue,
+  nullable,
+  number,
+  object,
+  pipe,
+  string,
+} from 'valibot';
 
-import { CollectorQueryArgsSchema, parseCollectorQueryArgs } from '$lib/schemas/collector';
-
-import type { Message } from '$server/db/schema/messages';
-import type { OpenAi } from '$server/openai';
+import { type Message } from '$server/db/schema/messages';
+import { type OpenAi } from '$server/openai';
 
 /**
  * The type of the message send
@@ -26,6 +37,48 @@ type ContentCollectorData = {
   message: string;
   patientId: string;
   userId?: string;
+};
+
+export const TypeMessageSchema = enum_(MessageType);
+export const CategoryMessageSchema = enum_(MessageCategory);
+
+/**
+ * The schema for a message sent by the collector.
+ */
+export const CollectorSchema = object({
+  type: TypeMessageSchema,
+  category: CategoryMessageSchema,
+  levelImportance: pipe(number(), integer(), minValue(1), maxValue(5)),
+  subject: string(),
+  intent: string(),
+  information: object({
+    symptom: nullable(string()),
+    onset: nullable(string()),
+    details: nullable(string()),
+    extraInformation: nullable(string()),
+  }),
+  relatedMessageId: nullable(string()),
+});
+
+export type CollectorSchemaType = InferOutput<typeof CollectorSchema>;
+
+/**
+ * The schema for the query arguments of the collector.
+ */
+export const CollectorQueryArgsSchema = object({
+  patientId: string(),
+  userId: nullable(string()),
+});
+
+/**
+ * Parse the query arguments of the collector.
+ * @param args
+ * @returns
+ */
+export const parseCollectorQueryArgs = (args: string) => {
+  const jsonData = JSON.parse(args);
+
+  return parse(CollectorQueryArgsSchema, jsonData);
 };
 
 /**
@@ -68,7 +121,7 @@ export function collectorRunner(
             "details": "Informations supplémentaires",
             "extraInformation": "Informations complémentaires"
           },
-          "relatedMessageId": "l'id du message lié, si seulement le message te semble être une réponse à un message précédent"
+          "relatedMessageId": "l'identifiant du message lié"
         }.
         Tu dois respecter le format de la réponse,
         `,
@@ -76,6 +129,10 @@ export function collectorRunner(
       {
         role: 'system',
         content: `Tu auras accès à l'identifiant du patient et celui de l'utilisateur si il y en a un`,
+      },
+      {
+        role: 'system',
+        content: `Si le message te semble être une réponse à un message précédent, tu dois utiliser la fonction getMessage pour récupérer les messages précédents.`,
       },
       {
         role: 'user',
@@ -87,10 +144,8 @@ export function collectorRunner(
         type: 'function',
         function: {
           name: 'getMessage',
-          description: `Fonction pour récupérer les messages, 
-          si il n'y a pas l'identifiant de l'utilisateur, c'est que l'ia a généré le message ou la réponse.
-          Cette fonction retourne un tableau de messages.
-          Grâce aux messages tu pourras déterminer si le message est une réponse à un autre message.
+          description: `Fonction permettant de récupérer les messages.
+          les messages auront le format suivant: { id, userId, patientId, data, content }.
           `,
           function: getMessage,
           parse: parseCollectorQueryArgs,
