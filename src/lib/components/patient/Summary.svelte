@@ -4,7 +4,7 @@
     import type { Patient } from '$server/db/schema/patients';
     import type { Response } from '$server/db/schema/responses';
 
-    export type SummaryStatus = 'empty' | 'generating' | 'generated';
+    export type SummaryStatus = 'idle' | 'generating' | 'writing';
 
     export type SummaryProps = {
         /**
@@ -35,9 +35,9 @@
     const { patient, ...attributes }: SummaryProps = $props();
 
     let summary = $state<string | null>(null);
-    let status = $state<SummaryStatus>('empty');
+    let status = $state<SummaryStatus>('idle');
     let generateButtonDisabled = $derived(patient.messages.length === 0 || status === 'generating');
-    let downloadButtonDisabled = $derived(summary === null || status !== 'generated');
+    let downloadButtonDisabled = $derived(summary === null || status !== 'idle');
     let summaryId = $derived(`${patient.id}-summary`);
     let abortController = $state(new AbortController());
     let summaryContainer = $state<HTMLElement | null>(null);
@@ -59,6 +59,7 @@
             abortController.abort();
             abortController = new AbortController();
             status = 'generating';
+            summary = null;
 
             // Send the message to the assistant
             const response = await fetch(`/api/summary/${patient.id}`, {
@@ -69,6 +70,8 @@
 
             // If the request was aborted, we should not continue
             if (abortController.signal.aborted) {
+                status = 'idle';
+
                 return;
             }
 
@@ -77,6 +80,8 @@
                 toast.error(
                     'Une erreur est survenue lors de la génération du résumé. Veuillez réessayer.',
                 );
+
+                status = 'idle';
 
                 return;
             }
@@ -89,6 +94,7 @@
 
             // Set the summary to an empty string
             summary = '';
+            status = 'writing';
 
             // For every chunk sent to the stream...
             for await (const chunk of stream) {
@@ -107,7 +113,7 @@
                 }
             }
 
-            status = 'generated';
+            status = 'idle';
         } catch (e) {
             if (dev) {
                 console.error(
@@ -116,7 +122,7 @@
                 );
             }
 
-            status = 'empty';
+            status = 'idle';
 
             toast.error(
                 'Une erreur est survenue lors de la génération du résumé. Veuillez réessayer.',
@@ -189,7 +195,7 @@
                     size="icon"
                     builders="{[builder]}"
                     disabled="{generateButtonDisabled}"
-                    aria-label="Générer le résumé"
+                    aria-label="Générer un résumé"
                     aria-controls="{summaryId}"
                     onclick="{generateSummary}"
                 >
@@ -197,7 +203,11 @@
                 </Button>
             </Tooltip.Trigger>
             <Tooltip.Content>
-                <p>Générer un résumé pour ce patient basé sur son historique de messages</p>
+                <p>
+                    {summary
+                        ? 'Générer un autre résumé pour ce patient basé sur son historique de messages'
+                        : 'Générer un résumé pour ce patient basé sur son historique de messages'}
+                </p>
             </Tooltip.Content>
         </Tooltip.Root>
     </div>
@@ -206,16 +216,17 @@
         id="{summaryId}"
         class="p-2"
         aria-live="polite"
-        aria-busy="{status === 'generating'}"
+        aria-atomic="true"
+        aria-busy="{status !== 'idle'}"
         bind:this="{summaryContainer}"
     >
-        {#if summary}
-            <div class="prose lg:prose-xl" in:fade>
-                <Markdown md="{summary}" />
-            </div>
-        {:else if status === 'generating'}
+        {#if status === 'generating'}
             <div class="flex items-center justify-center">
                 <IconLoaderCircle class="size-8 animate-spin text-primary" />
+            </div>
+        {:else if summary}
+            <div class="prose lg:prose-xl" in:fade>
+                <Markdown md="{summary}" />
             </div>
         {/if}
     </div>
