@@ -211,7 +211,7 @@
 </script>
 
 {#if opened}
-    <div class="flex items-center gap-2 pb-2">
+    <div class="flex items-center gap-2 pb-6">
         <Avatar.Root>
             <Avatar.Image src="doc.webp" alt="Le Doc" />
             <Avatar.Fallback>LD</Avatar.Fallback>
@@ -225,8 +225,8 @@
 
     <Chat
         allowMarkdown
+        class="flex h-full flex-col"
         busy="{assistantStatus !== 'available'}"
-        class="max-h-[calc(100%-3rem)] overflow-auto px-0.5"
         bind:currentMessage="{answer}"
         disabled="{answer?.trim() === ''}"
         onsubmit="{sendMessage}"

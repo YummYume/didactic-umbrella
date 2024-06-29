@@ -4,12 +4,20 @@
 
     .driver-popover {
       &-arrow-side {
+        &-bottom {
+          @apply border-b-background;
+        }
+
         &-left {
           @apply border-l-background;
         }
 
         &-right {
           @apply border-r-background;
+        }
+
+        &-top {
+          @apply border-t-background;
         }
       }
 

@@ -1,13 +1,17 @@
 <script lang="ts">
-	import { Dialog as SheetPrimitive } from "bits-ui";
-	import { cn } from "$lib/utils.js";
+    import { Dialog as SheetPrimitive } from 'bits-ui';
 
-	type $$Props = SheetPrimitive.DescriptionProps;
+    import { cn } from '$lib/utils.js';
 
-	let className: $$Props["class"] = undefined;
-	export { className as class };
+    type $$Props = SheetPrimitive.DescriptionProps;
+
+    let className: $$Props['class'] = undefined;
+    export { className as class };
 </script>
 
-<SheetPrimitive.Description class={cn("text-sm text-muted-foreground", className)} {...$$restProps}>
-	<slot />
+<SheetPrimitive.Description
+    class="{cn('text-sm text-muted-foreground', className)}"
+    {...$$restProps}
+>
+    <slot />
 </SheetPrimitive.Description>

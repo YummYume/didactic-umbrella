@@ -62,6 +62,7 @@
 </script>
 
 <script lang="ts">
+    import { scale } from 'svelte/transition';
     import Markdown from 'svelte-exmarkdown';
 
     import Button from '$components/ui/button/button.svelte';
@@ -72,7 +73,7 @@
 
     const messagesClass = {
         self: 'ml-auto bg-blue-500 text-white',
-        other: 'bg-neutral-500/25 text-white',
+        other: 'bg-neutral-500/25',
     };
 
     let {
@@ -108,6 +109,7 @@
         class="w-max max-w-[75%] rounded-3xl px-[1em] py-[0.5em] {messagesClass[
             message.sender
         ]} {allowMarkdown ? 'prose lg:prose-xl' : ''}"
+        transition:scale
     >
         {#if allowMarkdown}
             <Markdown md="{message.content}" />
@@ -122,7 +124,7 @@
     busy?: boolean,
     disabled?: boolean,
 )}
-    <form aria-busy="{busy}" class="mt-4" method="post" {onsubmit}>
+    <form aria-busy="{busy}" class="pt-3" method="post" {onsubmit}>
         <label class="grid gap-2">
             <p>Votre message</p>
             <Textarea class="resize-none" name="chat-message" required bind:value="{currentMessage}"
@@ -145,11 +147,15 @@
 {/snippet}
 
 <div {...attributes}>
-    <ul class="space-y-4 pb-0.5" bind:this="{chatContainer}">
-        {#each messages as message}
-            {@render messageTemplate(message, allowMarkdown)}
-        {/each}
-    </ul>
+    <div class="flex max-h-[calc(100%-14.75rem)] grow">
+        <div class="w-full overflow-auto">
+            <ul class=" space-y-4 px-1" bind:this="{chatContainer}">
+                {#each messages as message}
+                    {@render messageTemplate(message, allowMarkdown)}
+                {/each}
+            </ul>
+        </div>
+    </div>
 
     {@render formTemplate(onsubmit, busy, disabled)}
 </div>

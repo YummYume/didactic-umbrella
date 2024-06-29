@@ -92,7 +92,7 @@
         </Button>
 
         <ul class="flex gap-0.5">
-            <li>
+            <li class="flex items-center gap-[1em]">
                 {#if data.user}
                     <p>{data.user.email}</p>
                     <form action="/?/logout" method="post" use:enhance>
