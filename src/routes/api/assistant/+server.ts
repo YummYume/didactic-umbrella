@@ -3,7 +3,6 @@ import { error } from '@sveltejs/kit';
 import { eq, or } from 'drizzle-orm';
 import { safeParse } from 'valibot';
 
-import { CollectorSchema } from '$lib/schemas/collector';
 import { AssistantMessageSchema } from '$lib/schemas/message';
 import { ORIGIN } from '$env/static/private';
 
@@ -20,6 +19,7 @@ import {
   parseAssistantQueryRecordsArgs,
 } from '$server/schemas/assistant';
 import { AssistantAllowedFrom, buildOrderBy, buildSearch } from '$server/utils/assistant';
+import { CollectorSchema } from '$server/utils/collector';
 
 import type { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
 import type { RequestHandler } from './$types';
