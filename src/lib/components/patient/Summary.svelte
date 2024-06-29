@@ -37,7 +37,7 @@
     let summary = $state<string | null>(null);
     let status = $state<SummaryStatus>('empty');
     let generateButtonDisabled = $derived(
-        patient.messages.length === 0 || status !== 'empty' || summary !== null,
+        patient.messages.length === 0 || status === 'generating' || summary !== null,
     );
     let downloadButtonDisabled = $derived(summary === null || status !== 'generated');
     let summaryId = $derived(`${patient.id}-summary`);
