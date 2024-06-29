@@ -37,7 +37,7 @@
     "@types/eslint": "^8.56.10",
     "@types/node": "^20.14.9",
     "autoprefixer": "^10.4.19",
-    "bits-ui": "^0.21.10",
+    "bits-ui": "^0.21.11",
     "concurrently": "^8.2.2",
     "drizzle-kit": "^0.22.7",
     "eslint": "^9.5.0",

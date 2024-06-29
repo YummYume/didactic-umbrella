@@ -56,7 +56,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
       },
       {
         role: 'user',
-        content: `Données du patient ${patientId} à utiliser pour générer le résumé : ${JSON.stringify(patient)}.`,
+        content: `Données du patient "${patientId}" à utiliser pour générer le résumé : "${JSON.stringify(patient)}".`,
       },
     ],
   });

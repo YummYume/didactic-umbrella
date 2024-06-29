@@ -19,6 +19,6 @@
             ><IconLogin class="mr-2 size-4" />Accès administration</Button
         >
     {:else}
-        <Button href="/login" variant="ghost">Connexion</Button>
+        <Button href="/login">Connexion</Button>
     {/if}
 </main>

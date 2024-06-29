@@ -9,10 +9,20 @@
     import { onNavigate } from '$app/navigation';
     import { page } from '$app/stores';
     import logo from '$lib/assets/logo.png';
+    import * as Sheet from '$lib/components/ui/sheet';
+    import * as Tooltip from '$lib/components/ui/tooltip';
+    import { initAssistantState } from '$lib/states/assistant.svelte';
 
+    import Assistant from '$components/Assistant.svelte';
     import DarkModeSwitch from '$components/DarkModeSwitch.svelte';
     import HelpButton from '$components/HelpButton.svelte';
     import Button from '$components/ui/button/button.svelte';
+    import { driverjs, ROUTE_STEPS } from '$utils/driver';
+
+    import IconAssistant from '~icons/lucide/bot-message-square';
+
+    // Initialize context
+    initAssistantState();
 
     const { children, data } = $props();
 
@@ -23,6 +33,13 @@
         robots: 'noindex, nofollow',
     };
 
+    const drive = () => {
+        const steps = ROUTE_STEPS[$page.url.pathname] ?? [];
+
+        driverjs.setSteps(steps);
+    };
+
+    let assistantOpen = $state(false);
     let meta = $derived({
         ...defaultMeta,
         ...$page.data.seo?.meta,
@@ -34,6 +51,10 @@
 
             $flash = undefined;
         }
+    });
+
+    $effect(() => {
+        drive();
     });
 
     onNavigate((navigation) => {
@@ -48,6 +69,18 @@
                 await navigation.complete;
             });
         });
+    });
+
+    onNavigate((navigation) => {
+        navigation.complete.then(() => {
+            drive();
+        });
+    });
+
+    onNavigate(() => {
+        if (assistantOpen) {
+            assistantOpen = false;
+        }
     });
 </script>
 
@@ -73,7 +106,7 @@
         </Button>
 
         <ul class="flex gap-0.5">
-            <li>
+            <li class="flex items-center gap-[1em]">
                 {#if data.user}
                     <p>{data.user.email}</p>
                     <form action="/?/logout" method="post" use:enhance>
@@ -83,6 +116,34 @@
                     <Button href="/login" variant="ghost">Connexion</Button>
                 {/if}
             </li>
+
+            {#if data.user}
+                <li>
+                    <Sheet.Root bind:open="{assistantOpen}">
+                        <Sheet.Trigger>
+                            <Tooltip.Root>
+                                <Tooltip.Trigger asChild let:builder>
+                                    <Button
+                                        aria-label="Discuter avec l'assistant"
+                                        builders="{[builder]}"
+                                        size="icon"
+                                        variant="ghost"
+                                    >
+                                        <IconAssistant class="size-6" />
+                                    </Button>
+                                </Tooltip.Trigger>
+                                <Tooltip.Content>
+                                    <p>Discuter avec l'assistant</p>
+                                </Tooltip.Content>
+                            </Tooltip.Root>
+                        </Sheet.Trigger>
+                        <Sheet.Content>
+                            <Assistant />
+                        </Sheet.Content>
+                    </Sheet.Root>
+                </li>
+            {/if}
+
             <li>
                 <HelpButton />
             </li>

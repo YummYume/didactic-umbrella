@@ -1,28 +1,52 @@
 <script lang="ts">
+    import * as Dialog from '$lib/components/ui/dialog/index.js';
     import * as Tooltip from '$lib/components/ui/tooltip';
+    import { Actions } from '$lib/enums/actions';
 
     import { driverjs } from '$utils/driver';
 
     import IconCircleHelp from '~icons/lucide/circle-help';
 
     import Button from './ui/button/button.svelte';
+
+    let dialogOpen = $state(false);
 </script>
 
-<Tooltip.Root>
-    <Tooltip.Trigger asChild let:builder
-        ><Button
-            aria-label="Lancer la visite guidée"
-            builders="{[builder]}"
-            onclick="{() => {
-                driverjs.drive();
-            }}"
-            size="icon"
-            variant="ghost"
-        >
-            <IconCircleHelp class="size-6" />
-        </Button></Tooltip.Trigger
-    >
-    <Tooltip.Content>
-        <p>Lancer la visite guidée</p>
-    </Tooltip.Content>
-</Tooltip.Root>
+<Dialog.Root bind:open="{dialogOpen}">
+    <Dialog.Trigger asChild let:builder="{dialogBuilder}">
+        <Tooltip.Root>
+            <Tooltip.Trigger asChild let:builder="{tooltipBuilder}">
+                <Button
+                    aria-label="{Actions.Help}"
+                    builders="{[dialogBuilder, tooltipBuilder]}"
+                    size="icon"
+                    variant="ghost"
+                    on:click="{() => (dialogOpen = true)}"
+                >
+                    <IconCircleHelp class="size-6" />
+                </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+                <p>{Actions.Help}</p>
+            </Tooltip.Content>
+        </Tooltip.Root>
+    </Dialog.Trigger>
+    <Dialog.Content class="sm:max-w-[425px]">
+        <Dialog.Header>
+            <Dialog.Title>Visite guidée</Dialog.Title>
+            <Dialog.Description>
+                La visite guidée vous expliquera les différentes fonctionnalités de l'application.
+            </Dialog.Description>
+        </Dialog.Header>
+        <Dialog.Footer>
+            <Button
+                on:click="{() => {
+                    dialogOpen = false;
+                    driverjs.drive();
+                }}"
+            >
+                {Actions.Help}
+            </Button>
+        </Dialog.Footer>
+    </Dialog.Content>
+</Dialog.Root>

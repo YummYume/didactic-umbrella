@@ -31,9 +31,9 @@ const ASSISTANT_ROLE_CONTENT = `
 
   Le personnel médical n'est pas habitué à l'informatique et aux nouvelles technologies, donc tu dois être patient et clair dans tes réponses. Tu peux aussi demander des informations supplémentaires si tu en as besoin.
 
-  Lorsque le personnel médical te demande la fiche d'un patient, tu dois essayer de leur donner l'URL de la fiche du patient. Essaie aussi de leur donner des informations sur le patient si tu en as. Ne donne aucun conseil médical, sous aucun prétexte.
+  Lorsque le personnel médical te demande la fiche d'un patient, tu dois essayer de leur donner l'URL de la fiche du patient. Tu dois chercher l'ID du ou des patients dans la base de données pour récupérer leur ID et générer l'URL. N'invente pas d'ID de patient, et ne donne pas d'URLs invalides.
 
-  Tu peux et devrais répondre en Markdown pour formater tes réponses. Tes réponses devraient être claires et concises, mais également informatives et utiles au personnel médical. Essaie d'être courtois et de ne pas être trop formel.
+  Tu peux et devrais répondre en Markdown pour formater tes réponses. Tes réponses devraient être claires et concises, mais également informatives et utiles au personnel médical. Essaie d'être courtois et de ne pas être trop formel. Essaie aussi de leur donner des informations sur le patient si tu en as. Ne donne aucun conseil médical, sous aucun prétexte.
 `;
 
 export const POST = (async ({ request, locals }) => {
@@ -141,48 +141,52 @@ export const POST = (async ({ request, locals }) => {
   // @ts-expect-error - Likely a bug in the type definition from the library
   const collectedDataSchema = toJSONSchema({ schema: CollectorSchema });
 
-  const stream = locals.openai.beta.chat.completions.runTools({
-    model: 'gpt-4-turbo',
-    max_tokens: MESSAGE_MAX_LENGTH,
-    stream: true,
-    messages: [
-      {
-        role: 'system',
-        content: ASSISTANT_ROLE_CONTENT,
-      },
-      {
-        role: 'system',
-        content: `L'utilisateur actuel s'appelle ${user.firstName} ${user.lastName}. Son ID est ${user.id}. Tu peux utiliser son prénom et son nom pour personnaliser tes réponses, mais ne lui communique pas son ID. Tu peux cependant utiliser son ID pour effectuer des requêtes dans la base de données si nécessaire.`,
-      },
-      ...validatedData.output.messages,
-      { role: 'user', content: validatedData.output.content },
-    ],
-    tools: [
-      {
-        type: 'function',
-        function: {
-          name: 'queryRecords',
-          description: `Fonction pour effectuer une requête dans la base de données en fonction de certains critères. Cette fonction retourne un tableau de résultats. Toutes les propriétés contenues dans "search" sont liées par un "OR" logique. La propriété "data" dans "messages" et "responses" contient le schéma suivant : ${collectedDataSchema}.`,
-          function: queryRecords,
-          parse: parseAssistantQueryRecordsArgs,
-          // @ts-expect-error - Likely a bug in the type definition from the library
-          parameters: toJSONSchema({ schema: AssistantQueryRecordsArgsSchema }),
+  const stream = locals.openai.beta.chat.completions
+    .runTools({
+      model: 'gpt-4-turbo',
+      max_tokens: MESSAGE_MAX_LENGTH,
+      stream: true,
+      messages: [
+        {
+          role: 'system',
+          content: ASSISTANT_ROLE_CONTENT,
         },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'generatePatientsUrls',
-          description:
-            "Fonction pour générer les URLs absolues vers les fiches des patients en fonction de leurs identifiants. Cette fonction retourne un tableau d'URLs, dans le même ordre que les identifiants des patients fournis.",
-          function: generatePatientsUrls,
-          parse: parseAssistantGeneratePatientUrlArgs,
-          // @ts-expect-error - Likely a bug in the type definition from the library
-          parameters: toJSONSchema({ schema: AssistantGeneratePatientUrlArgsSchema }),
+        {
+          role: 'system',
+          content: `L'utilisateur actuel s'appelle ${user.firstName} ${user.lastName}. Son ID est ${user.id}. Tu peux utiliser son prénom et son nom pour personnaliser tes réponses, mais ne lui communique pas son ID. Tu peux cependant utiliser son ID pour effectuer des requêtes dans la base de données si nécessaire. La date et l'heure actuelles sont ${new Date().toLocaleString()}.`,
         },
-      },
-    ],
-  });
+        ...validatedData.output.messages,
+        { role: 'user', content: validatedData.output.content },
+      ],
+      tools: [
+        {
+          type: 'function',
+          function: {
+            name: 'queryRecords',
+            description: `Fonction pour effectuer une requête dans la base de données en fonction de certains critères. Cette fonction retourne un tableau de résultats. Toutes les propriétés contenues dans "search" sont liées par un "OR" logique. La propriété "data" dans "messages" et "responses" contient le schéma suivant : ${collectedDataSchema}.`,
+            function: queryRecords,
+            parse: parseAssistantQueryRecordsArgs,
+            // @ts-expect-error - Likely a bug in the type definition from the library
+            parameters: toJSONSchema({ schema: AssistantQueryRecordsArgsSchema }),
+          },
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'generatePatientsUrls',
+            description:
+              "Fonction pour générer les URLs absolues vers les fiches des patients en fonction de leurs identifiants. Cette fonction retourne un tableau d'URLs, dans le même ordre que les identifiants des patients fournis. Les identifiants des patients sont contenus dans la propriété 'id' de la table 'patients'.",
+            function: generatePatientsUrls,
+            parse: parseAssistantGeneratePatientUrlArgs,
+            // @ts-expect-error - Likely a bug in the type definition from the library
+            parameters: toJSONSchema({ schema: AssistantGeneratePatientUrlArgsSchema }),
+          },
+        },
+      ],
+    })
+    .on('error', (e) => {
+      console.error('Error while contacting AI', e);
+    });
 
   return new Response(stream.toReadableStream(), {
     headers: {

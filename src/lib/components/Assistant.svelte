@@ -12,15 +12,15 @@
     import { safeParse } from 'valibot';
 
     import { dev } from '$app/environment';
+    import * as Avatar from '$lib/components/ui/avatar/index.js';
     import { AssistantMessageContentSchema } from '$lib/schemas/message';
+    import { getAssistantState } from '$lib/states/assistant.svelte';
 
     import { AssistantError } from '$utils/error';
 
-    import Chat, { type Message } from './chat/Chat.svelte';
+    import Chat from './chat/Chat.svelte';
 
     import type { ChatCompletionChunk } from 'openai/resources/index.mjs';
-
-    const { opened = false }: AssistantProps = $props();
 
     const assistantStatusText: Record<AssistantStatus, string> = {
         available: 'Disponible',
@@ -29,11 +29,17 @@
         typing: 'Écrit...',
     };
 
-    let assistantStatus: AssistantStatus = $state('available');
-    let answer = $state<string | null>(null);
-    let messages: Message[] = $state([]);
-    let abortController = $state(new AbortController());
-    let currentAssistantStatusText = $derived(assistantStatusText[assistantStatus]);
+    const assistantStatusColors = {
+        analyzing: 'bg-yellow-500',
+        available: 'bg-teal-500',
+        searching: 'bg-blue-500',
+        typing: 'bg-neutral-500',
+    };
+
+    // See https://github.com/huntabyte/bits-ui/issues/315
+    const assistantState = getAssistantState();
+
+    let currentAssistantStatusText = $derived(assistantStatusText[assistantState.status]);
 
     /**
      * Sends a new message to the assistant.
@@ -43,7 +49,7 @@
             event.preventDefault();
 
             // If somehow the assistant is not available, we should not send the message
-            if (assistantStatus !== 'available') {
+            if (assistantState.status !== 'available') {
                 // Do not throw an AssistantError here, as it would also reset the assistant status
                 toast.error(
                     "L'assistant n'est pas disponible pour le moment. Veuillez réessayer plus tard.",
@@ -52,31 +58,28 @@
                 return;
             }
 
-            abortController.abort();
-            abortController = new AbortController();
+            assistantState.abortController.abort();
+            assistantState.abortController = new AbortController();
 
             // Validate the user input
-            const validatedInput = safeParse(AssistantMessageContentSchema, answer);
+            const validatedInput = safeParse(AssistantMessageContentSchema, assistantState.answer);
 
             if (!validatedInput.success) {
-                throw new AssistantError(
-                    validatedInput.issues.map((i) => i.message).join('\n'),
-                    true,
-                );
+                throw new AssistantError(validatedInput.issues.map((i) => i.message).join('\n'));
             }
 
             // Clear the input and set the assistant status to analyzing
-            answer = '';
-            assistantStatus = 'analyzing';
+            assistantState.answer = '';
+            assistantState.status = 'analyzing';
 
             // Add the user's message, as well as a temporary message indicating that the assistant is analyzing the message
-            messages.push({
-                id: messages.length,
+            assistantState.addMessage({
+                id: assistantState.messages.length,
                 sender: 'self',
                 content: validatedInput.output,
             });
-            messages.push({
-                id: messages.length,
+            assistantState.addMessage({
+                id: assistantState.messages.length,
                 sender: 'other',
                 content: 'Analyse du message en cours...',
             });
@@ -85,11 +88,11 @@
             const response = await fetch('/api/assistant', {
                 body: JSON.stringify({
                     content: validatedInput.output,
-                    messages: [...messages]
+                    messages: [...assistantState.messages]
                         .filter(
                             (currentMessage) =>
-                                currentMessage.id !== messages.at(-1)?.id &&
-                                currentMessage.id !== messages.at(-2)?.id,
+                                currentMessage.id !== assistantState.messages.at(-1)?.id &&
+                                currentMessage.id !== assistantState.messages.at(-2)?.id,
                         )
                         .map((currentMessage) => ({
                             content: currentMessage.content,
@@ -98,11 +101,11 @@
                 }),
                 method: 'POST',
                 credentials: 'same-origin',
-                signal: abortController.signal,
+                signal: assistantState.abortController.signal,
             });
 
             // If the request was aborted, we should not continue
-            if (abortController.signal.aborted) {
+            if (assistantState.abortController.signal.aborted) {
                 return;
             }
 
@@ -110,19 +113,17 @@
             if (!response.ok || !response.body) {
                 throw new AssistantError(
                     "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.",
-                    true,
                 );
             }
 
             // Read the stream !
             const stream = Stream.fromReadableStream<ChatCompletionChunk>(
                 response.body,
-                abortController,
+                assistantState.abortController,
             );
-            const message = messages.at(-1) as Message;
 
             // Clear the temporary message and indicate that the assistant is typing
-            message.content = '';
+            assistantState.updateLastMessageContent('');
 
             try {
                 // For every chunk sent to the stream...
@@ -136,25 +137,27 @@
                     // If the assistant is calling a function and there's no content, we should add a temporary message
                     if (
                         firstChoice.delta.tool_calls !== undefined &&
-                        message.content === '' &&
-                        assistantStatus === 'analyzing'
+                        assistantState.lastMessage?.content === '' &&
+                        assistantState.status === 'analyzing'
                     ) {
-                        assistantStatus = 'searching';
+                        assistantState.status = 'searching';
 
-                        message.content = 'Recherche approfondie en cours...';
+                        assistantState.updateLastMessageContent(
+                            'Recherche approfondie en cours...',
+                        );
                     }
 
                     // If there's content
                     if (firstChoice.delta.content) {
-                        if (assistantStatus !== 'typing') {
-                            message.content = '';
-                            assistantStatus = 'typing';
+                        if (assistantState.status !== 'typing') {
+                            assistantState.updateLastMessageContent('');
+                            assistantState.status = 'typing';
                         }
 
                         // Add the content to the message
                         const streamText = firstChoice.delta.content;
 
-                        message.content += streamText;
+                        assistantState.updateLastMessageContent(streamText, false);
                     }
                 }
             } catch (e) {
@@ -167,10 +170,16 @@
 
                 throw new AssistantError(
                     "Une erreur est survenue lors de la lecture de la réponse de l'assistant. Veuillez réessayer.",
-                    true,
                 );
             }
         } catch (e) {
+            const lastMessage = assistantState.messages.at(-1);
+
+            if (lastMessage && lastMessage.sender === 'other') {
+                lastMessage.content =
+                    "Je n'ai pas pu vous répondre à cause d'une erreur inattendue. Vous pouvez réessayer à tout moment.";
+            }
+
             // Handle errors (assistant errors are handled differently)
             if (!(e instanceof AssistantError)) {
                 if (dev) {
@@ -184,41 +193,34 @@
                 return;
             }
 
-            if (e.replaceLastMessage) {
-                const lastMessage = messages.at(-1);
-
-                if (lastMessage && lastMessage.sender === 'other') {
-                    lastMessage.content =
-                        "Je n'ai pas pu vous répondre à cause d'une erreur inattendue. Vous pouvez réessayer à tout moment.";
-                }
-            }
-
             // We know the message is safe to display
             toast.error(e.message);
         } finally {
             // Set the assistant status back to available
-            assistantStatus = 'available';
+            assistantState.status = 'available';
         }
     };
-
-    $effect(() => {
-        return () => {
-            // Abort the current request when the component is destroyed
-            abortController.abort();
-        };
-    });
 </script>
 
-{#if opened}
-    <div>
-        <h2>Assistant</h2>
-        <p>{currentAssistantStatusText}</p>
-        <Chat
-            {messages}
-            bind:currentMessage="{answer}"
-            onsubmit="{sendMessage}"
-            busy="{assistantStatus !== 'available' || answer?.trim() === ''}"
-            allowMarkdown
-        />
-    </div>
-{/if}
+<div class="flex items-center gap-2 pb-6">
+    <Avatar.Root>
+        <Avatar.Image src="/doc.webp" alt="Avatar Le Doc" />
+        <Avatar.Fallback>LD</Avatar.Fallback>
+    </Avatar.Root>
+    <p>Le Doc</p>
+    <p class="flex items-center gap-2">
+        <span class="size-1.5 rounded-full {assistantStatusColors[assistantState.status]}"></span>
+        {currentAssistantStatusText}
+    </p>
+</div>
+
+<Chat
+    allowMarkdown
+    class="flex h-full flex-col"
+    busy="{assistantState.status !== 'available'}"
+    bind:currentMessage="{assistantState.answer}"
+    disabled="{assistantState.answer?.trim() === ''}"
+    onsubmit="{sendMessage}"
+    baseId="assistant-chat-"
+    messages="{assistantState.messages}"
+/>
