@@ -21,6 +21,7 @@ import {
 } from '$server/schemas/assistant';
 import { AssistantAllowedFrom, buildOrderBy, buildSearch } from '$server/utils/assistant';
 
+import type { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
 import type { RequestHandler } from './$types';
 
 /**
@@ -141,23 +142,33 @@ export const POST = (async ({ request, locals }) => {
   // @ts-expect-error - Likely a bug in the type definition from the library
   const collectedDataSchema = toJSONSchema({ schema: CollectorSchema });
 
+  let chatMessages: ChatCompletionMessageParam[] = [
+    {
+      role: 'system',
+      content: ASSISTANT_ROLE_CONTENT,
+    },
+    {
+      role: 'system',
+      content: `L'utilisateur actuel s'appelle ${user.firstName} ${user.lastName}. Son ID est ${user.id}. Tu peux utiliser son prénom et son nom pour personnaliser tes réponses, mais ne lui communique pas son ID. Tu peux cependant utiliser son ID pour effectuer des requêtes dans la base de données si nécessaire. La date et l'heure actuelles sont ${new Date().toLocaleString()}.`,
+    },
+  ];
+
+  if (validatedData.output.context) {
+    chatMessages = [...chatMessages, { role: 'system', content: validatedData.output.context }];
+  }
+
+  chatMessages = [
+    ...chatMessages,
+    ...validatedData.output.messages,
+    { role: 'user', content: validatedData.output.content },
+  ];
+
   const stream = locals.openai.beta.chat.completions
     .runTools({
       model: 'gpt-4-turbo',
       max_tokens: MESSAGE_MAX_LENGTH,
       stream: true,
-      messages: [
-        {
-          role: 'system',
-          content: ASSISTANT_ROLE_CONTENT,
-        },
-        {
-          role: 'system',
-          content: `L'utilisateur actuel s'appelle ${user.firstName} ${user.lastName}. Son ID est ${user.id}. Tu peux utiliser son prénom et son nom pour personnaliser tes réponses, mais ne lui communique pas son ID. Tu peux cependant utiliser son ID pour effectuer des requêtes dans la base de données si nécessaire. La date et l'heure actuelles sont ${new Date().toLocaleString()}.`,
-        },
-        ...validatedData.output.messages,
-        { role: 'user', content: validatedData.output.content },
-      ],
+      messages: chatMessages,
       tools: [
         {
           type: 'function',

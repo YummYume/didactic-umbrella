@@ -12,7 +12,9 @@
 >
     La solution de dialogue automatisée
 </h1>
+
 <img alt="Bannière" height="935" src="{banner}" width="3607" />
+
 <main class="container mt-8 text-center">
     {#if $page.data.user}
         <Button href="/admin" size="lg" variant="secondary"

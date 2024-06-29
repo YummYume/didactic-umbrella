@@ -12,6 +12,7 @@
     import { safeParse } from 'valibot';
 
     import { dev } from '$app/environment';
+    import { page } from '$app/stores';
     import * as Avatar from '$lib/components/ui/avatar/index.js';
     import { AssistantMessageContentSchema } from '$lib/schemas/message';
     import { getAssistantState } from '$lib/states/assistant.svelte';
@@ -22,14 +23,13 @@
 
     import type { ChatCompletionChunk } from 'openai/resources/index.mjs';
 
-    const assistantStatusText: Record<AssistantStatus, string> = {
+    const ASSISTANT_STATUS_TEXT: Record<AssistantStatus, string> = {
         available: 'Disponible',
         analyzing: 'Réflexion en cours...',
         searching: 'Recherche en cours...',
         typing: 'Écrit...',
     };
-
-    const assistantStatusColors = {
+    const ASSISTANT_STATUS_COLOR = {
         analyzing: 'bg-yellow-500',
         available: 'bg-teal-500',
         searching: 'bg-blue-500',
@@ -37,9 +37,10 @@
     };
 
     // See https://github.com/huntabyte/bits-ui/issues/315
+    // See https://www.youtube.com/watch?v=e1vlC31Sh34
     const assistantState = getAssistantState();
 
-    let currentAssistantStatusText = $derived(assistantStatusText[assistantState.status]);
+    let currentAssistantStatusText = $derived(ASSISTANT_STATUS_TEXT[assistantState.status]);
 
     /**
      * Sends a new message to the assistant.
@@ -88,6 +89,7 @@
             const response = await fetch('/api/assistant', {
                 body: JSON.stringify({
                     content: validatedInput.output,
+                    context: $page.data.assistantContext ?? $page.error?.assistantContext,
                     messages: [...assistantState.messages]
                         .filter(
                             (currentMessage) =>
@@ -209,7 +211,7 @@
     </Avatar.Root>
     <p>Le Doc</p>
     <p class="flex items-center gap-2">
-        <span class="size-1.5 rounded-full {assistantStatusColors[assistantState.status]}"></span>
+        <span class="size-1.5 rounded-full {ASSISTANT_STATUS_COLOR[assistantState.status]}"></span>
         {currentAssistantStatusText}
     </p>
 </div>

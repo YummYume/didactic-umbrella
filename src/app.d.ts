@@ -9,6 +9,9 @@ declare global {
     interface Error {
       message: string;
       errors?: SchemaIssues;
+      assistantContext?: {
+        prompt: string;
+      };
     }
     interface Locals {
       user: User | null;
@@ -26,6 +29,9 @@ declare global {
           description?: string;
           [key: string]: string?;
         };
+      };
+      assistantContext?: {
+        prompt: string;
       };
     }
     // interface PageState {}
