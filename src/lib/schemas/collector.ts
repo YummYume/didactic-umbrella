@@ -42,6 +42,7 @@ export type CollectorSchemaType = InferOutput<typeof CollectorSchema>;
  */
 export const CollectorQueryArgsSchema = object({
   patientId: string(),
+  userId: nullable(string()),
 });
 
 /**

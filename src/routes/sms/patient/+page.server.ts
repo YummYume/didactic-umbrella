@@ -15,7 +15,7 @@ export const actions: Actions = {
     }
 
     try {
-      const response = await fetch('/api/sms', {
+      const response = await fetch('/api/sms/patient', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -75,12 +75,12 @@
 
             // Add the user's message, as well as a temporary message indicating that the assistant is analyzing the message
             assistantState.addMessage({
-                id: assistantState.messages.length,
+                id: `${assistantState.messages.length}`,
                 sender: 'self',
                 content: validatedInput.output,
             });
             assistantState.addMessage({
-                id: assistantState.messages.length,
+                id: `${assistantState.messages.length}`,
                 sender: 'other',
                 content: 'Analyse du message en cours...',
             });
