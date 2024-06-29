@@ -20,6 +20,10 @@
 
     export type ChatProps = {
         /**
+         * The base identifier to use for IDs in the chat's elements.
+         */
+        baseId: string;
+        /**
          * The messages to display in the chat.
          */
         messages: Message[];
@@ -77,6 +81,7 @@
     };
 
     let {
+        baseId,
         messages,
         currentMessage = $bindable(null),
         busy = false,
@@ -89,6 +94,7 @@
     }: ChatProps = $props();
 
     let chatContainer = $state<HTMLUListElement | null>(null);
+    let chatContainerId = $derived(`${baseId}-chat`);
     let lastMessage = $derived(messages.at(-1) || null);
 
     $effect(() => {
@@ -108,13 +114,18 @@
     <li
         class="w-max max-w-[75%] rounded-3xl px-[1em] py-[0.5em] {messagesClass[
             message.sender
-        ]} {allowMarkdown ? 'prose lg:prose-xl' : ''}"
+        ]} {allowMarkdown ? 'prose dark:prose-invert lg:prose-xl' : ''}"
         transition:scale
     >
         {#if allowMarkdown}
             <Markdown md="{message.content}" />
         {:else}
-            {message.content}
+            <p>
+                <span class="sr-only"
+                    >{message.sender === 'self' ? 'Mon message' : 'Message reçu'} :
+                </span>
+                {message.content}
+            </p>
         {/if}
     </li>
 {/snippet}
@@ -124,11 +135,32 @@
     busy?: boolean,
     disabled?: boolean,
 )}
-    <form aria-busy="{busy}" class="pt-3" method="post" {onsubmit}>
+    <form
+        aria-busy="{busy}"
+        class="pt-3"
+        method="post"
+        aria-controls="{chatContainerId}"
+        {onsubmit}
+    >
         <label class="grid gap-2">
             <p>Votre message</p>
-            <Textarea class="resize-none" name="chat-message" required bind:value="{currentMessage}"
-            ></Textarea>
+            <Textarea
+                class="resize-none"
+                name="chat-message"
+                required
+                bind:value="{currentMessage}"
+                onkeydown="{(event) => {
+                    if (
+                        event.key === 'Enter' &&
+                        !event.ctrlKey &&
+                        !event.shiftKey &&
+                        !event.metaKey
+                    ) {
+                        event.preventDefault();
+                        event.currentTarget.form?.requestSubmit();
+                    }
+                }}"
+            />
             <Button
                 aria-label="Envoyer le message"
                 class="ml-auto"
@@ -149,8 +181,13 @@
 <div {...attributes}>
     <div class="flex max-h-[calc(100%-14.75rem)] grow">
         <div class="w-full overflow-auto">
-            <ul class=" space-y-4 px-1" bind:this="{chatContainer}">
-                {#each messages as message}
+            <ul
+                id="{chatContainerId}"
+                class=" space-y-4 px-1"
+                aria-live="polite"
+                bind:this="{chatContainer}"
+            >
+                {#each messages as message (message.id)}
                     {@render messageTemplate(message, allowMarkdown)}
                 {/each}
             </ul>

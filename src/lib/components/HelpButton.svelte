@@ -9,7 +9,7 @@
 
     import Button from './ui/button/button.svelte';
 
-    let dialogOpen = false;
+    let dialogOpen = $state(false);
 </script>
 
 <Dialog.Root bind:open="{dialogOpen}">

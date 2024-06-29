@@ -225,7 +225,7 @@
                 <IconLoaderCircle class="size-8 animate-spin text-primary" />
             </div>
         {:else if summary}
-            <div class="prose lg:prose-xl" in:fade>
+            <div class="prose dark:prose-invert lg:prose-xl" in:fade>
                 <Markdown md="{summary}" />
             </div>
         {/if}

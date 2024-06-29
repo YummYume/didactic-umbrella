@@ -11,6 +11,7 @@
     import logo from '$lib/assets/logo.png';
     import * as Sheet from '$lib/components/ui/sheet';
     import * as Tooltip from '$lib/components/ui/tooltip';
+    import { initAssistantState } from '$lib/states/assistant.svelte';
 
     import Assistant from '$components/Assistant.svelte';
     import DarkModeSwitch from '$components/DarkModeSwitch.svelte';
@@ -19,6 +20,10 @@
     import { driverjs, ROUTE_STEPS } from '$utils/driver';
 
     import IconAssistant from '~icons/lucide/bot-message-square';
+
+    // Initialize context
+    initAssistantState();
+
     const { children, data } = $props();
 
     const flash = getFlash(page);
@@ -34,6 +39,7 @@
         driverjs.setSteps(steps);
     };
 
+    let assistantOpen = $state(false);
     let meta = $derived({
         ...defaultMeta,
         ...$page.data.seo?.meta,
@@ -45,7 +51,9 @@
 
             $flash = undefined;
         }
+    });
 
+    $effect(() => {
         drive();
     });
 
@@ -67,6 +75,12 @@
         navigation.complete.then(() => {
             drive();
         });
+    });
+
+    onNavigate(() => {
+        if (assistantOpen) {
+            assistantOpen = false;
+        }
     });
 </script>
 
@@ -105,7 +119,7 @@
 
             {#if data.user}
                 <li>
-                    <Sheet.Root>
+                    <Sheet.Root bind:open="{assistantOpen}">
                         <Sheet.Trigger>
                             <Tooltip.Root>
                                 <Tooltip.Trigger asChild let:builder>
@@ -124,7 +138,7 @@
                             </Tooltip.Root>
                         </Sheet.Trigger>
                         <Sheet.Content>
-                            <Assistant opened />
+                            <Assistant />
                         </Sheet.Content>
                     </Sheet.Root>
                 </li>

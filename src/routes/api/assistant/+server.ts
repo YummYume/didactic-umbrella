@@ -31,9 +31,9 @@ const ASSISTANT_ROLE_CONTENT = `
 
   Le personnel médical n'est pas habitué à l'informatique et aux nouvelles technologies, donc tu dois être patient et clair dans tes réponses. Tu peux aussi demander des informations supplémentaires si tu en as besoin.
 
-  Lorsque le personnel médical te demande la fiche d'un patient, tu dois essayer de leur donner l'URL de la fiche du patient. Essaie aussi de leur donner des informations sur le patient si tu en as. Ne donne aucun conseil médical, sous aucun prétexte.
+  Lorsque le personnel médical te demande la fiche d'un patient, tu dois essayer de leur donner l'URL de la fiche du patient. Tu dois chercher l'ID du ou des patients dans la base de données pour récupérer leur ID et générer l'URL. N'invente pas d'ID de patient, et ne donne pas d'URLs invalides.
 
-  Tu peux et devrais répondre en Markdown pour formater tes réponses. Tes réponses devraient être claires et concises, mais également informatives et utiles au personnel médical. Essaie d'être courtois et de ne pas être trop formel.
+  Tu peux et devrais répondre en Markdown pour formater tes réponses. Tes réponses devraient être claires et concises, mais également informatives et utiles au personnel médical. Essaie d'être courtois et de ne pas être trop formel. Essaie aussi de leur donner des informations sur le patient si tu en as. Ne donne aucun conseil médical, sous aucun prétexte.
 `;
 
 export const POST = (async ({ request, locals }) => {
@@ -153,7 +153,7 @@ export const POST = (async ({ request, locals }) => {
         },
         {
           role: 'system',
-          content: `L'utilisateur actuel s'appelle ${user.firstName} ${user.lastName}. Son ID est ${user.id}. Tu peux utiliser son prénom et son nom pour personnaliser tes réponses, mais ne lui communique pas son ID. Tu peux cependant utiliser son ID pour effectuer des requêtes dans la base de données si nécessaire.`,
+          content: `L'utilisateur actuel s'appelle ${user.firstName} ${user.lastName}. Son ID est ${user.id}. Tu peux utiliser son prénom et son nom pour personnaliser tes réponses, mais ne lui communique pas son ID. Tu peux cependant utiliser son ID pour effectuer des requêtes dans la base de données si nécessaire. La date et l'heure actuelles sont ${new Date().toLocaleString()}.`,
         },
         ...validatedData.output.messages,
         { role: 'user', content: validatedData.output.content },
@@ -175,7 +175,7 @@ export const POST = (async ({ request, locals }) => {
           function: {
             name: 'generatePatientsUrls',
             description:
-              "Fonction pour générer les URLs absolues vers les fiches des patients en fonction de leurs identifiants. Cette fonction retourne un tableau d'URLs, dans le même ordre que les identifiants des patients fournis.",
+              "Fonction pour générer les URLs absolues vers les fiches des patients en fonction de leurs identifiants. Cette fonction retourne un tableau d'URLs, dans le même ordre que les identifiants des patients fournis. Les identifiants des patients sont contenus dans la propriété 'id' de la table 'patients'.",
             function: generatePatientsUrls,
             parse: parseAssistantGeneratePatientUrlArgs,
             // @ts-expect-error - Likely a bug in the type definition from the library

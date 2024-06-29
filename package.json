@@ -78,7 +78,6 @@
     "drizzle-orm": "^0.31.2",
     "formsnap": "^1.0.1",
     "lucia": "^3.2.0",
-    "lucide-svelte": "^0.399.0",
     "mysql2": "^3.10.1",
     "openai": "^4.52.1",
     "tailwind-merge": "^2.3.0",
