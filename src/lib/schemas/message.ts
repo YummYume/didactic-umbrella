@@ -16,10 +16,10 @@ import { MESSAGE_MAX_LENGTH, MESSAGE_MIN_LENGTH, MessageRole } from '$utils/mess
  * Validates the content of a message to or from the assistant.
  */
 export const AssistantMessageContentSchema = pipe(
-  string(),
+  string('Veuillez saisir un message valide.'),
   transform((input) => input.trim()),
-  minLength(MESSAGE_MIN_LENGTH),
-  maxLength(MESSAGE_MAX_LENGTH),
+  minLength(MESSAGE_MIN_LENGTH, 'Le message doit contenir au moins 1 caractère.'),
+  maxLength(MESSAGE_MAX_LENGTH, 'Le message doit contenir au maximum 4000 caractères.'),
 );
 
 /**
@@ -28,10 +28,14 @@ export const AssistantMessageContentSchema = pipe(
 export const AssistantMessageSchema = object({
   content: AssistantMessageContentSchema,
   messages: array(
-    object({
-      role: enum_(MessageRole),
-      content: pipe(string(), minLength(MESSAGE_MIN_LENGTH), maxLength(MESSAGE_MAX_LENGTH)),
-    }),
+    object(
+      {
+        role: enum_(MessageRole),
+        content: pipe(string(), minLength(MESSAGE_MIN_LENGTH), maxLength(MESSAGE_MAX_LENGTH)),
+      },
+      'Les messages ne semblent pas être valides.',
+    ),
+    'Les messages ne semblent pas être valides.',
   ),
 });
 
