@@ -124,15 +124,9 @@ export function collectorRunner(
           "relatedMessageId": "l'identifiant du message lié"
         }.
         Tu dois respecter le format de la réponse,
+        Tu auras accès à l'identifiant du patient et celui de l'utilisateur si il y en a un,
+        Si le message te semble être une réponse à un message précédent, tu dois utiliser la fonction getMessage pour récupérer les messages précédents.
         `,
-      },
-      {
-        role: 'system',
-        content: `Tu auras accès à l'identifiant du patient et celui de l'utilisateur si il y en a un`,
-      },
-      {
-        role: 'system',
-        content: `Si le message te semble être une réponse à un message précédent, tu dois utiliser la fonction getMessage pour récupérer les messages précédents.`,
       },
       {
         role: 'user',

@@ -21,7 +21,7 @@
 <h1>{data.patient.phone}</h1>
 
 <Summary patient="{data.patient}" />
-<Chat messages="{data.messages}" allowMarkdown>
+<Chat messages="{data.messages}" allowMarkdown baseId="sms-user">
     {#snippet formTemplate()}
         <form action="?/send" method="post" use:enhance>
             <Form.Field {form} name="message">
