@@ -28,8 +28,9 @@ Pour lancer le projet, suivre les étapes suivantes :
 2. Créer un fichier `.env.local` et ajouter sa clé d'API OpenAI `OPENAI_API_KEY=MY_API_KEY`
 3. Lancer la commande `make start`
 4. Ouvrir un navigateur et aller à l'adresse [http://localhost:5173](http://localhost:5173)
+5. Lancer la commande `make db` une fois que le serveur est lancé (le serveur est lancé si vous voyez la page d'accueil)
 
-PHPMyAdmin est disponible à l'adresse [http://localhost:5174](http://localhost:5174) avec les identifiants `root` et `root` (serveur `mysql`).
+PHPMyAdmin est disponible à l'adresse [http://localhost:8080](http://localhost:8080) avec les identifiants `root` et `root` (serveur `mysql`).
 
 C'est tout !
 
@@ -71,12 +72,13 @@ La stack technique utilisée est la suivante :
 Les fonctionnalités suivantes sont disponibles :
 
 - Page de garde
+- Tutoriel de démarrage pour aider le personnel médical à utiliser l'application
 - Login (email + mot de passe)
 - Page avec liste des patients
 - Assistant "Le Doc" pour poser des questions, chercher des patients, etc.
 - Page d'un patient avec historique des SMS
 - Génération d'une fiche patient avec IA et téléchargement de la fiche en PNG
-- Page factice d'envoi de SMS (pour un patient) disponible sur l'URL [http://localhost:5173/send-sms](http://localhost:5173/send-sms)
+- Page factice d'envoi de SMS (pour un patient) disponible sur l'URL [http://localhost:5173/sms/patient](http://localhost:5173/sms/patient)
 - Streaming : les réponses de l'assistant "Le Doc" et la génération de la fiche patient sont en streaming, et apparaissent en temps réel dans l'application
 - Temps réel : le reçu des messages se fait en temps réel dans l'application, avec notification toast lors de la réception d'un message
 - Dark mode
@@ -142,6 +144,7 @@ Il serait possible d'aller encore plus loin sur beaucoup de points, pour pousser
 
 ## Drizzle studio
 
-Si vous ne voulez pas utiliser PHPMyAdmin, vous pouvez utiliser Drizzle Studio pour gérer la base de données. C'est un outil de gestion de base de données basé sur le web qui vous permet de gérer votre base de données à l'aide d'une interface web.
+Si vous ne voulez pas utiliser PHPMyAdmin, vous pouvez utiliser Drizzle Studio pour gérer la base de données.
+C'est un outil de gestion de base de données basé sur le web qui vous permet de gérer votre base de données à l'aide d'une interface web.
 
-Vous avez juste besoin d'aller sur [https://local.drizzle.studio](https://local.drizzle.studio) pour y accéder.
+Vous avez juste besoin de lancer la commande `make db-studio` et d'aller sur [https://local.drizzle.studio](https://local.drizzle.studio) pour y accéder.

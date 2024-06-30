@@ -3,10 +3,12 @@ import { safeParse } from 'valibot';
 
 import { SmsUserSchema } from '$lib/schemas/sms';
 
+import { MercureTopic, type MercureTopicDataMappingWithTopic } from '$utils/mercure-topic';
 import { messages } from '$server/db/schema/messages';
 import { responses } from '$server/db/schema/responses';
 import { MessageType } from '$server/schemas/collector';
 import { collectorRunner } from '$server/utils/collector';
+import { publishMercureTopic } from '$server/utils/mercure';
 
 import type { RequestHandler } from './$types';
 
@@ -21,6 +23,15 @@ export const POST = (async ({ request, locals }) => {
 
   if (!validatedData.success) {
     error(400, { message: 'Veuillez saisir des données valide.', errors: validatedData.issues });
+  }
+
+  // Find the patient by phone number
+  const patient = await db.query.patients.findFirst({
+    where: (patient, { eq }) => eq(patient.id, validatedData.output.patientId),
+  });
+
+  if (!patient) {
+    error(404, { message: 'Patient introuvable.' });
   }
 
   const validatedDataAi = await collectorRunner(openai, db, {
@@ -47,6 +58,22 @@ export const POST = (async ({ request, locals }) => {
       userId: user?.id,
     });
 
+    // Prepare the Mercure data
+    const publishData = {
+      patientId: patient.id,
+      messageId: aiResponse.relatedMessageId,
+      content: validatedData.output.message,
+      phone: patient.phone,
+      topic: MercureTopic.NewResponse,
+      userId: user?.id,
+    } satisfies MercureTopicDataMappingWithTopic[MercureTopic.NewResponse];
+
+    // Dispatch to the Mercure hub
+    await publishMercureTopic(fetch, {
+      topic: MercureTopic.NewResponse,
+      data: JSON.stringify(publishData),
+    });
+
     return json(newResponse, { status: 201, statusText: 'Votre réponse à été envoyée.' });
   }
 
@@ -56,6 +83,21 @@ export const POST = (async ({ request, locals }) => {
     content: validatedData.output.message,
     userId: user?.id,
     patientId: validatedData.output.patientId,
+  });
+
+  // Prepare the Mercure data
+  const publishData = {
+    patientId: patient.id,
+    content: validatedData.output.message,
+    phone: patient.phone,
+    topic: MercureTopic.NewMessage,
+    userId: user?.id,
+  } satisfies MercureTopicDataMappingWithTopic[MercureTopic.NewMessage];
+
+  // Dispatch to the Mercure hub
+  await publishMercureTopic(fetch, {
+    topic: MercureTopic.NewMessage,
+    data: JSON.stringify(publishData),
   });
 
   return json(newMessage, { status: 201, statusText: 'Votre message à été envoyé.' });

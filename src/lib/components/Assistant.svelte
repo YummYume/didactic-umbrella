@@ -26,7 +26,7 @@
     const ASSISTANT_STATUS_TEXT: Record<AssistantStatus, string> = {
         available: 'Disponible',
         analyzing: 'Réflexion en cours...',
-        searching: 'Recherche en cours...',
+        searching: 'Action en cours...',
         typing: 'Écrit...',
     };
     const ASSISTANT_STATUS_COLOR = {
@@ -145,7 +145,7 @@
                         assistantState.status = 'searching';
 
                         assistantState.updateLastMessageContent(
-                            'Recherche approfondie en cours...',
+                            'Je traite votre demande, veuillez patienter...',
                         );
                     }
 
@@ -175,11 +175,13 @@
                 );
             }
         } catch (e) {
-            const lastMessage = assistantState.messages.at(-1);
+            const lastMessage = assistantState.lastMessage;
 
             if (lastMessage && lastMessage.sender === 'other') {
-                lastMessage.content =
-                    "Je n'ai pas pu vous répondre à cause d'une erreur inattendue. Vous pouvez réessayer à tout moment.";
+                assistantState.updateLastMessageContent(
+                    "Je n'ai pas pu vous répondre à cause d'une erreur inattendue. Vous pouvez réessayer à tout moment.",
+                    true,
+                );
             }
 
             // Handle errors (assistant errors are handled differently)

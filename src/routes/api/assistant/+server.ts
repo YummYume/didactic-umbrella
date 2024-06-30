@@ -37,6 +37,8 @@ const ASSISTANT_ROLE_CONTENT = `
 
   Lorsque le personnel médical te demande la fiche d'un patient, tu dois essayer de leur donner l'URL de la fiche du patient. Tu dois chercher l'ID du ou des patients dans la base de données pour récupérer leur ID et générer l'URL. N'invente pas d'ID de patient, et ne donne pas d'URLs invalides.
 
+  Lorsque le personnel médical te demande d'envoyer un SMS, tu dois toujours demander une confirmation en montrant le contenu du message avant de l'envoyer. Comme cette opération peut prendre du temps, tu dois toujours commencer à rédiger le message avant d'appeler la fonction d'envoi pour indiquer que c'est en cours.
+
   Tu peux et devrais répondre en Markdown pour formater tes réponses. Tes réponses devraient être claires et concises, mais également informatives et utiles au personnel médical. Essaie d'être courtois et de ne pas être trop formel. Essaie aussi de leur donner des informations sur le patient si tu en as. Ne donne aucun conseil médical, sous aucun prétexte.
 `;
 
@@ -167,7 +169,9 @@ export const POST = (async ({ request, locals, fetch }) => {
       if (!response.ok) {
         const data = await response.json();
 
-        console.error('Error while sending SMS', data);
+        console.error('Error while sending SMS:');
+        console.error(data);
+
         throw new Error(data.message);
       }
 
@@ -190,7 +194,7 @@ export const POST = (async ({ request, locals, fetch }) => {
     },
     {
       role: 'system',
-      content: `L'utilisateur actuel s'appelle ${user.firstName} ${user.lastName}. Son ID est ${user.id}. Tu peux utiliser son prénom et son nom pour personnaliser tes réponses, mais ne lui communique pas son ID. Tu peux cependant utiliser son ID pour effectuer des requêtes dans la base de données si nécessaire. La date et l'heure actuelles sont ${new Date().toLocaleString()}. Si on te demande d'envoyer un SMS, tu dois toujours demander une confirmation avec le contenu du message avant de l'envoyer. En plus, tu afficheras un message pour lui indiquer que le SMS est en cours d'envoi, et si l'envoi a réussi tu lui enverras un message de confirmation. Tu dois toujours vérifier que le numéro de téléphone est valide avant d'envoyer un SMS.`,
+      content: `L'utilisateur actuel s'appelle ${user.firstName} ${user.lastName}. Son ID est ${user.id}. Tu peux utiliser son prénom et son nom pour personnaliser tes réponses, mais ne lui communique pas son ID. Tu peux cependant utiliser son ID pour effectuer des requêtes dans la base de données si nécessaire. La date et l'heure actuelles sont ${new Date().toLocaleString()}.`,
     },
   ];
 
@@ -238,7 +242,7 @@ export const POST = (async ({ request, locals, fetch }) => {
           type: 'function',
           function: {
             name: 'sendSms',
-            description: `Fonction pour envoyer un SMS à un patient. Cette fonction prend en paramètre le contenu du message à envoyer, et l'identifiant du patient à contacter. Elle retourne un objet avec une propriété "success" à "true" si l'envoi a réussi.`,
+            description: `Fonction pour envoyer un SMS à un patient. Cette fonction prend en paramètre le contenu du message à envoyer, et l'identifiant du patient à contacter. Elle retourne un objet avec une propriété "success" à "true" si l'envoi a réussi. Cette opération peut prendre du temps.`,
             function: sendSms,
             parse: parseAssistantSendSmsArgs,
             // @ts-expect-error - Likely a bug in the type definition from the library

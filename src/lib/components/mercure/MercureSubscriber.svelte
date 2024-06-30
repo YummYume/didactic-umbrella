@@ -21,15 +21,15 @@
          */
         onmercuremessage?: (
             event: MessageEvent<MercureTopicDataMappingWithTopic[Topics[number]]>,
-        ) => void;
+        ) => void | Promise<void>;
         /**
          * The callback to execute when the connection is opened.
          */
-        onmercureopen?: (event: Event) => void;
+        onmercureopen?: (event: Event) => void | Promise<void>;
         /**
          * The callback to execute when the hub encounters an error.
          */
-        onmercureerror?: (event: Event) => void;
+        onmercureerror?: (event: Event) => void | Promise<void>;
         children?: Snippet;
     };
 </script>

@@ -105,9 +105,9 @@
     <MercureSubscriber
         hubUrl="{PUBLIC_MERCURE_HUB_URL}"
         topics="{[MercureTopic.NewMessage, MercureTopic.NewResponse]}"
-        onmercuremessage="{(event) => {
-            invalidate('app:patients');
-            invalidate(`app:patients:${event.data.patientId}`);
+        onmercuremessage="{async (event) => {
+            await invalidate('app:patients');
+            await invalidate(`app:patients:${event.data.patientId}`);
 
             // The message is from a patient, display it in a toast with a link to the patient's page
             if (!event.data.userId) {

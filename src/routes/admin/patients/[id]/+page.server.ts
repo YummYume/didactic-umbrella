@@ -1,11 +1,8 @@
 import { error } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 
 import { MessageSchema } from '$lib/schemas/sms';
-
-import { patients } from '$server/db/schema/patients';
 
 import type { Message } from '$components/chat/Chat.svelte';
 import type { Actions, PageServerLoad } from './$types';
@@ -15,11 +12,14 @@ export const load = (async ({ locals, params, depends }) => {
   const { id } = params;
 
   const patient = await db.query.patients.findFirst({
-    where: eq(patients.id, id),
+    where: (patients, { eq }) => eq(patients.id, id),
     with: {
       messages: {
+        orderBy: (messages, { asc }) => asc(messages.updatedAt),
         with: {
-          responses: true,
+          responses: {
+            orderBy: (responses, { asc }) => asc(responses.updatedAt),
+          },
         },
       },
     },
@@ -37,18 +37,18 @@ export const load = (async ({ locals, params, depends }) => {
     messagesCount: patient.messages.length,
   };
 
-  const messages: Message[] = patient.messages.reduce<Message[]>((acc, message) => {
+  const messages = patient.messages.reduce<Message[]>((acc, message) => {
     acc.push({
       id: message.id,
       content: message.content,
-      sender: 'self',
+      sender: message.userId ? 'self' : 'other',
     });
 
     message.responses.forEach((response) => {
       acc.push({
         id: response.id,
         content: response.content,
-        sender: 'other',
+        sender: response.userId ? 'self' : 'other',
       });
     });
     return acc;
@@ -89,14 +89,14 @@ export const actions: Actions = {
         form: {
           valid: false,
           errors: {
-            _errors: ['L’identifiant du patient est requis.'],
+            _errors: ["L'identifiant du patient est requis."],
           },
         },
       });
     }
 
     const patient = await db.query.patients.findFirst({
-      where: eq(patients.id, params.id),
+      where: (patients, { eq }) => eq(patients.id, params.id),
     });
 
     if (!patient) {
