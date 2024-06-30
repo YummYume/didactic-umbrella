@@ -15,33 +15,44 @@
         validators: valibotClient(MessageSchema),
     });
 
-    const { form: formData, enhance, message } = form;
+    const { form: formData, enhance, message, submitting } = form;
 </script>
 
-<h1>{data.patient.phone}</h1>
+<div class="container flex h-full flex-col space-y-2 py-12">
+    <h1 class="text-2xl font-bold leading-9 tracking-tight text-gray-900 dark:text-gray-100">
+        Numéro : {data.patient.phone}
+    </h1>
+    <div class="grid grow gap-8 lg:grid-cols-12">
+        <Summary class="lg:h-[calc(100svh-12.5rem)]" patient="{data.patient}" />
 
-<Summary patient="{data.patient}" />
-<Chat messages="{data.messages}" allowMarkdown baseId="sms-user">
-    {#snippet formTemplate()}
-        <form action="?/send" method="post" use:enhance>
-            <Form.Field {form} name="message">
-                <Form.Control let:attrs>
-                    <Form.Label class="sr-only">Message</Form.Label>
-                    <Input
-                        {...attrs}
-                        bind:value="{$formData.message}"
-                        placeholder="Votre message"
-                    />
-                </Form.Control>
-                <Form.Description />
-                <Form.FieldErrors />
-            </Form.Field>
+        <Chat
+            allowMarkdown
+            baseId="sms-user"
+            class="flex w-full flex-col rounded-3xl border-2 border-primary p-4 [--padding:6rem] lg:col-span-4 lg:h-[calc(100svh-12.5rem)]"
+            messages="{data.messages}"
+        >
+            {#snippet formTemplate()}
+                <form class="flex flex-col" action="?/send" method="post" use:enhance>
+                    <Form.Field {form} name="message">
+                        <Form.Control let:attrs>
+                            <Form.Label class="sr-only">Message</Form.Label>
+                            <Input
+                                {...attrs}
+                                bind:value="{$formData.message}"
+                                placeholder="Votre message"
+                            />
+                        </Form.Control>
+                        <Form.Description />
+                        <Form.FieldErrors />
+                    </Form.Field>
 
-            {#if $message}
-                <p role="status" aria-live="polite">{$message}</p>
-            {/if}
+                    {#if $message}
+                        <p role="status" aria-live="polite">{$message}</p>
+                    {/if}
 
-            <Form.Button>envoyer</Form.Button>
-        </form>
-    {/snippet}
-</Chat>
+                    <Form.Button class="ml-auto" disabled="{$submitting}">Envoyer</Form.Button>
+                </form>
+            {/snippet}
+        </Chat>
+    </div>
+</div>

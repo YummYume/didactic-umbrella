@@ -42,6 +42,7 @@
             <Button
                 on:click="{() => {
                     dialogOpen = false;
+
                     driverjs.drive();
                 }}"
             >

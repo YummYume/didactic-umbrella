@@ -179,13 +179,13 @@
 {/snippet}
 
 <div {...attributes}>
-    <div class="flex max-h-[calc(100%-14.75rem)] grow">
+    <div class="flex max-h-[calc(100%-var(--padding,0px))] grow">
         <div
             class="w-full overflow-auto scrollbar scrollbar-track-transparent scrollbar-thumb-slate-800 dark:scrollbar-thumb-slate-200"
         >
             <ul
                 id="{chatContainerId}"
-                class=" space-y-4 px-1"
+                class="space-y-4 px-1"
                 aria-live="polite"
                 bind:this="{chatContainer}"
             >

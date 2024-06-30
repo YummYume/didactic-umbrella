@@ -164,11 +164,10 @@
 </script>
 
 <section
-    class="relative h-full w-full overflow-auto rounded-md border-2 border-primary shadow"
     {...attributes}
+    class="relative overflow-auto rounded-3xl border-2 border-primary p-8 scrollbar scrollbar-track-transparent scrollbar-thumb-slate-800 dark:scrollbar-thumb-slate-200 lg:col-span-8 {attributes.class}"
 >
     <h2 class="sr-only">Fiche résumée du patient</h2>
-
     <div class="absolute right-2 top-2 flex items-center justify-center gap-2">
         <Tooltip.Root>
             <Tooltip.Trigger asChild let:builder>
@@ -211,7 +210,6 @@
             </Tooltip.Content>
         </Tooltip.Root>
     </div>
-
     <div
         id="{summaryId}"
         class="p-2"
