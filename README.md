@@ -44,6 +44,9 @@ PHPMyAdmin est disponible à l'adresse [http://localhost:8080](http://localhost:
 
 C'est tout !
 
+> [!NOTE]
+> Il se peut que la page ne s'affiche pas correctement lors de la navigation, voir cette [issue](https://github.com/sveltejs/kit/issues/11954). Il suffit de rafraîchir la page pour que tout s'affiche correctement.
+
 ## Liste des commandes disponibles
 
 Vous pouvez lancer la commande `make help` pour voir la liste des commandes disponibles.
