@@ -4,7 +4,6 @@ import { OPENAI_API_KEY } from '$env/static/private';
 
 export const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
-  fetch: fetch,
 });
 
 export type OpenAi = typeof openai;
