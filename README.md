@@ -6,6 +6,7 @@ Projet de Hackathon 2024 pour l'ESGI avec Calmedica sur le thème de la santé.
 
 - [Hackathon 2024](#hackathon-2024)
   - [Contenu](#contenu)
+  - [Le but du projet](#le-but-du-projet)
   - [Lancement du projet](#lancement-du-projet)
   - [Liste des commandes disponibles](#liste-des-commandes-disponibles)
   - [Liste des utilisateurs](#liste-des-utilisateurs)
@@ -16,6 +17,15 @@ Projet de Hackathon 2024 pour l'ESGI avec Calmedica sur le thème de la santé.
     - [Comment fonctionne "Le Doc" ?](#comment-fonctionne-le-doc-)
     - [Pour aller plus loin](#pour-aller-plus-loin)
   - [Drizzle studio](#drizzle-studio)
+
+## Le but du projet
+
+Le but principal du projet est de recréer l'application Calmedica en version simplifiée, avec une UI/UX améliorée, une accessibilité accrue,
+et des fonctionnalités innovantes.
+
+Le but est de déléguer un maximum de tâches à l'IA, pour permettre au personnel médical de se concentrer
+sur l'essentiel : les patients. Cela permettra de gagner du temps, de l'argent, et de réduire les erreurs humaines, mais aussi de rendre
+la vie du personnel médical plus agréable, notamment en automatisant les tâches répétitives et en les rendant plus simples.
 
 ## Lancement du projet
 
