@@ -5,6 +5,7 @@ import {
   maxLength,
   minLength,
   object,
+  optional,
   pipe,
   string,
   transform,
@@ -27,6 +28,7 @@ export const AssistantMessageContentSchema = pipe(
  */
 export const AssistantMessageSchema = object({
   content: AssistantMessageContentSchema,
+  context: optional(pipe(string(), minLength(1), maxLength(1000))),
   messages: array(
     object(
       {
