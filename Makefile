@@ -10,8 +10,7 @@ help:  ## Display this help
 
 
 ##@ Starting/stopping the project
-start: ## Build and start the project
-	make up-recreate db-reset db-fixtures
+start: up-recreate ## Build and start the project
 
 start-nocache: ## Build and start the project without cache
 	build-no-chache up-recreate
@@ -71,6 +70,10 @@ test-install: ## Install the test dependencies
 	bunx playwright install
 
 ##@ DB
+db: ## Initialize the database
+	make db-reset
+	make db-fixtures
+
 db-push: ## Push the current schema to the database
 	$(EXECSVELTEKIT) bunx drizzle-kit push:mysql --config=drizzle/drizzle.config.ts
 

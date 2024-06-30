@@ -14,7 +14,7 @@
     <h1
         class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900 dark:text-gray-100"
     >
-        Envoyer un sms
+        Envoyer un SMS
     </h1>
     <form
         method="post"

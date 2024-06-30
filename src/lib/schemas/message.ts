@@ -28,7 +28,7 @@ export const AssistantMessageContentSchema = pipe(
  */
 export const AssistantMessageSchema = object({
   content: AssistantMessageContentSchema,
-  context: optional(pipe(string(), minLength(1), maxLength(1000))),
+  context: optional(pipe(string(), minLength(1), maxLength(2000))),
   messages: array(
     object(
       {

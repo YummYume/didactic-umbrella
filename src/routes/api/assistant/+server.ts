@@ -3,7 +3,6 @@ import { error } from '@sveltejs/kit';
 import { eq, or } from 'drizzle-orm';
 import { safeParse } from 'valibot';
 
-import { CollectorSchema } from '$lib/schemas/collector';
 import { AssistantMessageSchema } from '$lib/schemas/message';
 import { ORIGIN } from '$env/static/private';
 
@@ -16,9 +15,13 @@ import {
   type AssistantGeneratePatientUrlArgsSchemaType,
   AssistantQueryRecordsArgsSchema,
   type AssistantQueryRecordsArgsSchemaType,
+  AssistantSendSmsArgsSchema,
+  type AssistantSendSmsArgsSchemaType,
   parseAssistantGeneratePatientUrlArgs,
   parseAssistantQueryRecordsArgs,
+  parseAssistantSendSmsArgs,
 } from '$server/schemas/assistant';
+import { CollectorSchema } from '$server/schemas/collector';
 import { AssistantAllowedFrom, buildOrderBy, buildSearch } from '$server/utils/assistant';
 
 import type { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
@@ -34,10 +37,12 @@ const ASSISTANT_ROLE_CONTENT = `
 
   Lorsque le personnel médical te demande la fiche d'un patient, tu dois essayer de leur donner l'URL de la fiche du patient. Tu dois chercher l'ID du ou des patients dans la base de données pour récupérer leur ID et générer l'URL. N'invente pas d'ID de patient, et ne donne pas d'URLs invalides.
 
+  Lorsque le personnel médical te demande d'envoyer un SMS, tu dois toujours demander une confirmation en montrant le contenu du message avant de l'envoyer. Comme cette opération peut prendre du temps, tu dois toujours commencer à rédiger le message avant d'appeler la fonction d'envoi pour indiquer que c'est en cours.
+
   Tu peux et devrais répondre en Markdown pour formater tes réponses. Tes réponses devraient être claires et concises, mais également informatives et utiles au personnel médical. Essaie d'être courtois et de ne pas être trop formel. Essaie aussi de leur donner des informations sur le patient si tu en as. Ne donne aucun conseil médical, sous aucun prétexte.
 `;
 
-export const POST = (async ({ request, locals }) => {
+export const POST = (async ({ request, locals, fetch }) => {
   const { user } = locals;
 
   if (!user) {
@@ -139,6 +144,46 @@ export const POST = (async ({ request, locals }) => {
     return args.patientIds.map((patientId) => `${ORIGIN}/admin/patients/${patientId}`);
   };
 
+  /**
+   * Function to send an SMS to a patient.
+   */
+  const sendSms = async (args: AssistantSendSmsArgsSchemaType) => {
+    const { message, patientId } = args;
+
+    if (!message || !patientId) {
+      throw new Error('Empty message or patient ID.');
+    }
+
+    try {
+      const response = await fetch('/api/sms/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patientId,
+          message,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+
+        console.error('Error while sending SMS:');
+        console.error(data);
+
+        throw new Error(data.message);
+      }
+
+      return { success: true };
+    } catch (e) {
+      console.error('Error while sending SMS', e);
+      console.error(e);
+
+      throw e;
+    }
+  };
+
   // @ts-expect-error - Likely a bug in the type definition from the library
   const collectedDataSchema = toJSONSchema({ schema: CollectorSchema });
 
@@ -193,12 +238,22 @@ export const POST = (async ({ request, locals }) => {
             parameters: toJSONSchema({ schema: AssistantGeneratePatientUrlArgsSchema }),
           },
         },
+        {
+          type: 'function',
+          function: {
+            name: 'sendSms',
+            description: `Fonction pour envoyer un SMS à un patient. Cette fonction prend en paramètre le contenu du message à envoyer, et l'identifiant du patient à contacter. Elle retourne un objet avec une propriété "success" à "true" si l'envoi a réussi. Cette opération peut prendre du temps.`,
+            function: sendSms,
+            parse: parseAssistantSendSmsArgs,
+            // @ts-expect-error - Likely a bug in the type definition from the library
+            parameters: toJSONSchema({ schema: AssistantSendSmsArgsSchema }),
+          },
+        },
       ],
     })
     .on('error', (e) => {
       console.error('Error while contacting AI', e);
     });
-
   return new Response(stream.toReadableStream(), {
     headers: {
       'Content-Type': 'text/event-stream',

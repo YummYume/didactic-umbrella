@@ -165,3 +165,22 @@ export const parseAssistantGeneratePatientUrlArgs = (args: string) => {
 export type AssistantGeneratePatientUrlArgsSchemaType = InferOutput<
   typeof AssistantGeneratePatientUrlArgsSchema
 >;
+
+/**
+ * Validate the arguments given by the assistant to send an SMS.
+ */
+export const AssistantSendSmsArgsSchema = object({
+  patientId: string(),
+  message: string(),
+});
+
+/**
+ * The parsing function for the assistant's send SMS arguments.
+ */
+export const parseAssistantSendSmsArgs = (args: string) => {
+  const jsonData = JSON.parse(args);
+
+  return parse(AssistantSendSmsArgsSchema, jsonData);
+};
+
+export type AssistantSendSmsArgsSchemaType = InferOutput<typeof AssistantSendSmsArgsSchema>;

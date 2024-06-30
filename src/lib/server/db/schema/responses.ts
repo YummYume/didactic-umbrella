@@ -6,7 +6,7 @@ import { timestampable } from './extend-schema/timestampable';
 import { messages } from './messages';
 import { users } from './users';
 
-import type { CollectorSchemaType } from '$lib/schemas/collector';
+import type { CollectorSchemaType } from '$server/schemas/collector';
 
 export const responses = mysqlTable('responses', {
   ...identifiable,

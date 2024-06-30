@@ -7,7 +7,7 @@
         /**
          * A unique identifier for the message.
          */
-        id: number;
+        id: string;
         /**
          * The sender of the message. Either 'self' for the current user or 'other' for anyone else.
          */

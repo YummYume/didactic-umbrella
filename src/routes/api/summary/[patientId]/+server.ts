@@ -2,9 +2,8 @@ import { toJSONSchema } from '@gcornut/valibot-json-schema';
 import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
-import { CollectorSchema } from '$lib/schemas/collector';
-
 import { patients } from '$server/db/schema/patients';
+import { CollectorSchema } from '$server/schemas/collector';
 
 import type { RequestHandler } from './$types';
 

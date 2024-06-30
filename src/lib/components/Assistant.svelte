@@ -26,7 +26,7 @@
     const ASSISTANT_STATUS_TEXT: Record<AssistantStatus, string> = {
         available: 'Disponible',
         analyzing: 'Réflexion en cours...',
-        searching: 'Recherche en cours...',
+        searching: 'Action en cours...',
         typing: 'Écrit...',
     };
     const ASSISTANT_STATUS_COLOR = {
@@ -75,12 +75,12 @@
 
             // Add the user's message, as well as a temporary message indicating that the assistant is analyzing the message
             assistantState.addMessage({
-                id: assistantState.messages.length,
+                id: `${assistantState.messages.length}`,
                 sender: 'self',
                 content: validatedInput.output,
             });
             assistantState.addMessage({
-                id: assistantState.messages.length,
+                id: `${assistantState.messages.length}`,
                 sender: 'other',
                 content: 'Analyse du message en cours...',
             });
@@ -145,7 +145,7 @@
                         assistantState.status = 'searching';
 
                         assistantState.updateLastMessageContent(
-                            'Recherche approfondie en cours...',
+                            'Je traite votre demande, veuillez patienter...',
                         );
                     }
 
@@ -175,11 +175,13 @@
                 );
             }
         } catch (e) {
-            const lastMessage = assistantState.messages.at(-1);
+            const lastMessage = assistantState.lastMessage;
 
             if (lastMessage && lastMessage.sender === 'other') {
-                lastMessage.content =
-                    "Je n'ai pas pu vous répondre à cause d'une erreur inattendue. Vous pouvez réessayer à tout moment.";
+                assistantState.updateLastMessageContent(
+                    "Je n'ai pas pu vous répondre à cause d'une erreur inattendue. Vous pouvez réessayer à tout moment.",
+                    true,
+                );
             }
 
             // Handle errors (assistant errors are handled differently)
