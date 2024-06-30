@@ -52,7 +52,7 @@ export const GET: RequestHandler = async ({ locals, params }) => {
       },
       {
         role: 'system',
-        content: `Pour référence, voici le schéma utilisé lors de la collecte des données d'un message : ${collectedDataSchema}.`,
+        content: `Pour référence, voici le schéma utilisé lors de la collecte des données d'un message : ${collectedDataSchema}. La propriété "levelImportance" va de 1 à 5, où 1 est le plus bas et 5 est le plus haut.`,
       },
       {
         role: 'user',

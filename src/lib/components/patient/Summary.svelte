@@ -36,7 +36,7 @@
 
     let summary = $state<string | null>(null);
     let status = $state<SummaryStatus>('idle');
-    let generateButtonDisabled = $derived(patient.messages.length === 0 || status === 'generating');
+    let generateButtonDisabled = $derived(patient.messages.length === 0 || status !== 'idle');
     let downloadButtonDisabled = $derived(summary === null || status !== 'idle');
     let summaryId = $derived(`${patient.id}-summary`);
     let abortController = $state(new AbortController());
