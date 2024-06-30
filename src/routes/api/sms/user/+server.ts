@@ -47,7 +47,7 @@ export const POST = (async ({ request, locals }) => {
       userId: user?.id,
     });
 
-    return json(newResponse, { status: 201, statusText: 'Votre réponse à été enregistré' });
+    return json(newResponse, { status: 201, statusText: 'Votre réponse à été envoyée.' });
   }
 
   // Save the message
@@ -58,5 +58,5 @@ export const POST = (async ({ request, locals }) => {
     patientId: validatedData.output.patientId,
   });
 
-  return json(newMessage, { status: 201, statusText: 'Votre message à été enregistré' });
+  return json(newMessage, { status: 201, statusText: 'Votre message à été envoyé.' });
 }) satisfies RequestHandler;
