@@ -164,7 +164,7 @@
 </script>
 
 <section
-    class="scrollbar scrollbar-track-transparent scrollbar-thumb-slate-800 dark:scrollbar-thumb-slate-200 relative overflow-auto rounded-3xl border-2 border-primary p-8 lg:col-span-8 lg:h-[calc(100svh-11.75rem)]"
+    class="relative overflow-auto rounded-3xl border-2 border-primary p-8 scrollbar scrollbar-track-transparent scrollbar-thumb-slate-800 dark:scrollbar-thumb-slate-200 lg:col-span-8 lg:h-[calc(100svh-11.75rem)]"
     {...attributes}
 >
     <h2 class="sr-only">Fiche résumée du patient</h2>

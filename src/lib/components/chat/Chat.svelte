@@ -181,7 +181,7 @@
 <div {...attributes}>
     <div class="flex max-h-[calc(100%-var(--padding,0px))] grow">
         <div
-            class="scrollbar scrollbar-track-transparent scrollbar-thumb-slate-800 dark:scrollbar-thumb-slate-200 w-full overflow-auto"
+            class="w-full overflow-auto scrollbar scrollbar-track-transparent scrollbar-thumb-slate-800 dark:scrollbar-thumb-slate-200"
         >
             <ul
                 id="{chatContainerId}"
