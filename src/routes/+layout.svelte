@@ -19,7 +19,7 @@
     import HelpButton from '$components/HelpButton.svelte';
     import MercureSubscriber from '$components/mercure/MercureSubscriber.svelte';
     import Button from '$components/ui/button/button.svelte';
-    import { driverjs, ROUTE_STEPS } from '$utils/driver';
+    import { BASE_STEPS, driverjs, ROUTE_STEPS } from '$utils/driver';
     import { MercureTopic } from '$utils/mercure-topic';
     import { truncate } from '$utils/string';
 
@@ -38,9 +38,25 @@
     };
 
     const drive = () => {
-        const steps = ROUTE_STEPS[$page.url.pathname] ?? [];
+        const steps = [...BASE_STEPS, ...(ROUTE_STEPS[$page.url.pathname] ?? [])];
+        const launch = () => {
+            if ($page.url.pathname !== '/admin' || document.cookie.includes('visited')) {
+                return;
+            }
+
+            driverjs.drive();
+
+            document.cookie = 'visited=true';
+        };
 
         driverjs.setSteps(steps);
+
+        if (window.requestIdleCallback) {
+            window.requestIdleCallback(launch);
+        } else {
+            // Safari does not support requestIdleCallback
+            window.setTimeout(launch, 1);
+        }
     };
 
     let assistantOpen = $state(false);

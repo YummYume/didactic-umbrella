@@ -3,7 +3,7 @@ import { driver, type DriveStep } from 'driver.js';
 import { Actions } from '$lib/enums/actions';
 import { Status } from '$lib/enums/status';
 
-const BASE_STEPS: DriveStep[] = [
+export const BASE_STEPS: DriveStep[] = [
   {
     element: `[aria-label="${Actions.Assistant}"]`,
     popover: {
@@ -36,7 +36,6 @@ const BASE_STEPS: DriveStep[] = [
 ];
 
 export const ROUTE_STEPS: Record<string, DriveStep[]> = {
-  '/': BASE_STEPS,
   '/admin': [
     ...BASE_STEPS,
     {
