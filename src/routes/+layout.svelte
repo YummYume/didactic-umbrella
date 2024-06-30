@@ -63,6 +63,15 @@
         driverjs.setSteps(steps);
     };
 
+    const doLaunch = () => {
+        if (window.requestIdleCallback) {
+            window.requestIdleCallback(launch);
+        } else {
+            // Safari does not support requestIdleCallback
+            window.setTimeout(launch, 1);
+        }
+    };
+
     $effect(() => {
         if ($flash) {
             toast[$flash.type]($flash.message);
@@ -92,6 +101,7 @@
     onNavigate((navigation) => {
         navigation.complete.then(() => {
             drive();
+            doLaunch();
         });
     });
 
@@ -102,12 +112,7 @@
     });
 
     if (browser) {
-        if (window.requestIdleCallback) {
-            window.requestIdleCallback(launch);
-        } else {
-            // Safari does not support requestIdleCallback
-            window.setTimeout(launch, 1);
-        }
+        doLaunch();
     }
 </script>
 

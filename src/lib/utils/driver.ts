@@ -37,7 +37,6 @@ export const BASE_STEPS: DriveStep[] = [
 
 export const ROUTE_STEPS: Record<string, DriveStep[]> = {
   '/admin': [
-    ...BASE_STEPS,
     {
       element: `[aria-label="${Actions.Enrole}"]`,
       popover: {
