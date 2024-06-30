@@ -9,8 +9,10 @@
     import { goto, invalidate, onNavigate } from '$app/navigation';
     import { page } from '$app/stores';
     import logo from '$lib/assets/logo.png';
+    import * as Dialog from '$lib/components/ui/dialog/index.js';
     import * as Sheet from '$lib/components/ui/sheet';
     import * as Tooltip from '$lib/components/ui/tooltip';
+    import { Actions } from '$lib/enums/actions';
     import { initAssistantState } from '$lib/states/assistant.svelte';
     import { PUBLIC_MERCURE_HUB_URL } from '$env/static/public';
 
@@ -39,9 +41,10 @@
 
     const drive = () => {
         const steps = [...BASE_STEPS, ...(ROUTE_STEPS[$page.url.pathname] ?? [])];
+
         const launch = () => {
-            if ($page.url.pathname !== '/admin' || document.cookie.includes('visited')) {
-                return;
+            if (dialogOpen) {
+                document.cookie = 'visited=true';
             }
 
             driverjs.drive();
@@ -60,10 +63,13 @@
     };
 
     let assistantOpen = $state(false);
+
     let meta = $derived({
         ...defaultMeta,
         ...$page.data.seo?.meta,
     });
+
+    let dialogOpen = $state(false);
 
     $effect(() => {
         if ($flash) {
@@ -74,7 +80,7 @@
     });
 
     $effect(() => {
-        drive();
+        dialogOpen = !($page.url.pathname !== '/admin' || document.cookie.includes('visited'));
     });
 
     onNavigate((navigation) => {
@@ -213,3 +219,24 @@
 <main class="grow">
     {@render children()}
 </main>
+
+<Dialog.Root bind:open="{dialogOpen}">
+    <Dialog.Content class="sm:max-w-[425px]">
+        <Dialog.Header>
+            <Dialog.Title>Visite guidée</Dialog.Title>
+            <Dialog.Description>
+                C'est votre première visite sur Calmedica, laissez-nous vous guider.
+            </Dialog.Description>
+        </Dialog.Header>
+        <Dialog.Footer>
+            <Button
+                on:click="{() => {
+                    dialogOpen = false;
+                    drive();
+                }}"
+            >
+                {Actions.Help}
+            </Button>
+        </Dialog.Footer>
+    </Dialog.Content>
+</Dialog.Root>

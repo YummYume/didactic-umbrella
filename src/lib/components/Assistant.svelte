@@ -220,7 +220,7 @@
 
 <Chat
     allowMarkdown
-    class="flex h-full flex-col"
+    class="flex h-full flex-col [--padding:14.75rem]"
     busy="{assistantState.status !== 'available'}"
     bind:currentMessage="{assistantState.answer}"
     disabled="{assistantState.answer?.trim() === ''}"

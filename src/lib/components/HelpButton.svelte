@@ -1,9 +1,10 @@
 <script lang="ts">
+    import { page } from '$app/stores';
     import * as Dialog from '$lib/components/ui/dialog/index.js';
     import * as Tooltip from '$lib/components/ui/tooltip';
     import { Actions } from '$lib/enums/actions';
 
-    import { driverjs } from '$utils/driver';
+    import { BASE_STEPS, driverjs, ROUTE_STEPS } from '$utils/driver';
 
     import IconCircleHelp from '~icons/lucide/circle-help';
 
@@ -42,6 +43,7 @@
             <Button
                 on:click="{() => {
                     dialogOpen = false;
+                    driverjs.setSteps([...BASE_STEPS, ...(ROUTE_STEPS[$page.url.pathname] ?? [])]);
                     driverjs.drive();
                 }}"
             >
