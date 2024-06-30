@@ -190,7 +190,7 @@ export const POST = (async ({ request, locals, fetch }) => {
     },
     {
       role: 'system',
-      content: `L'utilisateur actuel s'appelle ${user.firstName} ${user.lastName}. Son ID est ${user.id}. Tu peux utiliser son prénom et son nom pour personnaliser tes réponses, mais ne lui communique pas son ID. Tu peux cependant utiliser son ID pour effectuer des requêtes dans la base de données si nécessaire. La date et l'heure actuelles sont ${new Date().toLocaleString()}.`,
+      content: `L'utilisateur actuel s'appelle ${user.firstName} ${user.lastName}. Son ID est ${user.id}. Tu peux utiliser son prénom et son nom pour personnaliser tes réponses, mais ne lui communique pas son ID. Tu peux cependant utiliser son ID pour effectuer des requêtes dans la base de données si nécessaire. La date et l'heure actuelles sont ${new Date().toLocaleString()}. Si on te demande d'envoyer un SMS, tu dois toujours demander une confirmation avec le contenu du message avant de l'envoyer. En plus, tu afficheras un message pour lui indiquer que le SMS est en cours d'envoi, et si l'envoi a réussi tu lui enverras un message de confirmation. Tu dois toujours vérifier que le numéro de téléphone est valide avant d'envoyer un SMS.`,
     },
   ];
 
