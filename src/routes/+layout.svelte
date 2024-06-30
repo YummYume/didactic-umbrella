@@ -5,6 +5,7 @@
     import { toast, Toaster } from 'svelte-sonner';
     import { getFlash } from 'sveltekit-flash-message';
 
+    import { browser } from '$app/environment';
     import { enhance } from '$app/forms';
     import { goto, invalidate, onNavigate } from '$app/navigation';
     import { page } from '$app/stores';
@@ -39,37 +40,28 @@
         robots: 'noindex, nofollow',
     };
 
-    const drive = () => {
-        const steps = [...BASE_STEPS, ...(ROUTE_STEPS[$page.url.pathname] ?? [])];
-
-        const launch = () => {
-            if (dialogOpen) {
-                document.cookie = 'visited=true';
-            }
-
-            driverjs.drive();
-
-            document.cookie = 'visited=true';
-        };
-
-        driverjs.setSteps(steps);
-
-        if (window.requestIdleCallback) {
-            window.requestIdleCallback(launch);
-        } else {
-            // Safari does not support requestIdleCallback
-            window.setTimeout(launch, 1);
-        }
-    };
-
     let assistantOpen = $state(false);
-
+    let firstVisit = $state(false);
     let meta = $derived({
         ...defaultMeta,
         ...$page.data.seo?.meta,
     });
 
-    let dialogOpen = $state(false);
+    const launch = () => {
+        if ($page.url.pathname !== '/admin' || document.cookie.includes('visited=true')) {
+            return;
+        }
+
+        firstVisit = true;
+
+        document.cookie = 'visited=true';
+    };
+
+    const drive = () => {
+        const steps = [...BASE_STEPS, ...(ROUTE_STEPS[$page.url.pathname] ?? [])];
+
+        driverjs.setSteps(steps);
+    };
 
     $effect(() => {
         if ($flash) {
@@ -80,7 +72,7 @@
     });
 
     $effect(() => {
-        dialogOpen = !($page.url.pathname !== '/admin' || document.cookie.includes('visited'));
+        drive();
     });
 
     onNavigate((navigation) => {
@@ -108,6 +100,15 @@
             assistantOpen = false;
         }
     });
+
+    if (browser) {
+        if (window.requestIdleCallback) {
+            window.requestIdleCallback(launch);
+        } else {
+            // Safari does not support requestIdleCallback
+            window.setTimeout(launch, 1);
+        }
+    }
 </script>
 
 <svelte:head>
@@ -220,7 +221,7 @@
     {@render children()}
 </main>
 
-<Dialog.Root bind:open="{dialogOpen}">
+<Dialog.Root bind:open="{firstVisit}">
     <Dialog.Content class="sm:max-w-[425px]">
         <Dialog.Header>
             <Dialog.Title>Visite guidée</Dialog.Title>
@@ -231,8 +232,17 @@
         <Dialog.Footer>
             <Button
                 on:click="{() => {
-                    dialogOpen = false;
-                    drive();
+                    firstVisit = false;
+                }}"
+            >
+                Non merci
+            </Button>
+
+            <Button
+                on:click="{() => {
+                    firstVisit = false;
+
+                    driverjs.drive();
                 }}"
             >
                 {Actions.Help}
