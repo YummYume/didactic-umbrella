@@ -109,7 +109,7 @@
             invalidate('app:patients');
             invalidate(`app:patients:${event.data.patientId}`);
 
-            // The message if from a patient
+            // The message is from a patient, display it in a toast with a link to the patient's page
             if (!event.data.userId) {
                 const messageContent = truncate(event.data.content, 50);
 

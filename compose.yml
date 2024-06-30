@@ -45,6 +45,7 @@ services:
       mysql:
         condition: service_healthy
 
+  # Note : We allow anonymous access to the Mercure hub for development purposes
   mercure:
     image: dunglas/mercure
     restart: unless-stopped
