@@ -14,7 +14,6 @@
 
     import Button from '$components/ui/button/button.svelte';
     import Separator from '$components/ui/separator/separator.svelte';
-    import { driverjs } from '$utils/driver';
 
     import IconUnexpected from '~icons/heroicons/bell-alert-solid';
     import IconPending from '~icons/heroicons/chat-bubble-oval-left-ellipsis-solid';
@@ -90,16 +89,6 @@
 
         return Status.Ok;
     };
-
-    $effect(() => {
-        if (document.cookie.includes('visited')) {
-            return;
-        }
-
-        driverjs.drive();
-
-        document.cookie = 'visited=true';
-    });
 </script>
 
 <div class="container">
