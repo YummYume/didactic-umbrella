@@ -6,18 +6,22 @@
     import { getFlash } from 'sveltekit-flash-message';
 
     import { enhance } from '$app/forms';
-    import { onNavigate } from '$app/navigation';
+    import { goto, invalidate, onNavigate } from '$app/navigation';
     import { page } from '$app/stores';
     import logo from '$lib/assets/logo.png';
     import * as Sheet from '$lib/components/ui/sheet';
     import * as Tooltip from '$lib/components/ui/tooltip';
     import { initAssistantState } from '$lib/states/assistant.svelte';
+    import { PUBLIC_MERCURE_HUB_URL } from '$env/static/public';
 
     import Assistant from '$components/Assistant.svelte';
     import DarkModeSwitch from '$components/DarkModeSwitch.svelte';
     import HelpButton from '$components/HelpButton.svelte';
+    import MercureSubscriber from '$components/mercure/MercureSubscriber.svelte';
     import Button from '$components/ui/button/button.svelte';
     import { driverjs, ROUTE_STEPS } from '$utils/driver';
+    import { MercureTopic } from '$utils/mercure-topic';
+    import { truncate } from '$utils/string';
 
     import IconAssistant from '~icons/lucide/bot-message-square';
 
@@ -97,12 +101,48 @@
 <ModeWatcher />
 <Toaster visibleToasts="{9}" duration="{8000}" theme="{$mode ?? 'system'}" />
 
+{#if data.user}
+    <MercureSubscriber
+        hubUrl="{PUBLIC_MERCURE_HUB_URL}"
+        topics="{[MercureTopic.NewMessage, MercureTopic.NewResponse]}"
+        onmercuremessage="{(event) => {
+            invalidate('app:patients');
+            invalidate(`app:patients:${event.data.patientId}`);
+
+            // The message is from a patient, display it in a toast with a link to the patient's page
+            if (!event.data.userId) {
+                const messageContent = truncate(event.data.content, 50);
+
+                if (event.data.topic === MercureTopic.NewResponse) {
+                    toast(`Nouvelle réponse du numéro ${event.data.phone} : "${messageContent}".`, {
+                        duration: 20000,
+                        action: {
+                            label: 'Voir',
+                            onClick: () => goto(`/admin/patients/${event.data.patientId}`),
+                        },
+                    });
+                }
+
+                if (event.data.topic === MercureTopic.NewMessage) {
+                    toast(`Nouveau message du numéro ${event.data.phone} : "${messageContent}".`, {
+                        duration: 20000,
+                        action: {
+                            label: 'Voir',
+                            onClick: () => goto(`/admin/patients/${event.data.patientId}`),
+                        },
+                    });
+                }
+            }
+        }}"
+    />
+{/if}
+
 <header
     class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 >
     <div class="container flex h-14 items-center justify-between gap-4">
         <Button href="{data.user ? '/admin' : '/'}" variant="ghost">
-            <img alt="Calmedica" class="h-6" src="{logo}" />
+            <img alt="Logo Calmedica" class="h-6" src="{logo}" />
         </Button>
 
         <ul class="flex gap-0.5">

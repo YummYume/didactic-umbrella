@@ -5,12 +5,14 @@ import { patients } from '$server/db/schema/patients';
 
 import type { PageServerLoad } from './$types';
 
-export const load = (async ({ locals }) => {
+export const load = (async ({ locals, depends }) => {
   const { db, session } = locals;
 
   if (!session) {
     redirect(302, '/login');
   }
+
+  depends('app:patients');
 
   const allPatients = await db.query.patients.findMany({
     orderBy: [desc(patients.createdAt)],

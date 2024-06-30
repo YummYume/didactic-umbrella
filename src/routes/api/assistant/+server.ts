@@ -174,7 +174,7 @@ export const POST = (async ({ request, locals }) => {
           type: 'function',
           function: {
             name: 'queryRecords',
-            description: `Fonction pour effectuer une requête dans la base de données en fonction de certains critères. Cette fonction retourne un tableau de résultats. Toutes les propriétés contenues dans "search" sont liées par un "OR" logique. La propriété "data" dans "messages" et "responses" contient le schéma suivant : ${collectedDataSchema}.`,
+            description: `Fonction pour effectuer une requête dans la base de données en fonction de certains critères. Cette fonction retourne un tableau de résultats. Toutes les propriétés contenues dans "search" sont liées par un "OR" logique. La propriété "data" dans "messages" et "responses" contient le schéma suivant : ${collectedDataSchema}. La propriété "levelImportance" va de 1 à 5, où 1 est le plus bas et 5 est le plus haut.`,
             function: queryRecords,
             parse: parseAssistantQueryRecordsArgs,
             // @ts-expect-error - Likely a bug in the type definition from the library
