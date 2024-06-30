@@ -3,6 +3,7 @@ import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
 import { patients } from '$server/db/schema/patients';
+import { CollectorSchema } from '$server/schemas/collector';
 
 import type { RequestHandler } from './$types';
 

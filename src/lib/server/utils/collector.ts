@@ -1,100 +1,67 @@
 import { toJSONSchema } from '@gcornut/valibot-json-schema';
-import { parse } from 'postcss';
+import { safeParse } from 'valibot';
+
 import {
-  enum_,
-  type InferOutput,
-  integer,
-  maxValue,
-  minValue,
-  nullable,
-  number,
-  object,
-  pipe,
-  string,
-} from 'valibot';
+  CollectorSchema,
+  type CollectorSchemaType,
+  parseCollectorSchemaArgs,
+} from '$server/schemas/collector';
 
-import { type Message } from '$server/db/schema/messages';
-import { type OpenAi } from '$server/openai';
+import type { db as dbType } from '$server/db';
+import type { OpenAi } from '$server/openai';
 
 /**
- * The type of the message send
+ * The data for the collector to process.
  */
-export enum MessageType {
-  Response = 'response',
-  Message = 'message',
-}
-
-/**
- * The category of the message
- */
-export enum MessageCategory {
-  Inappropriate = 'inappropriate',
-  Normal = 'normal',
-  Important = 'important',
-}
-
-type ContentCollectorData = {
+export type ContentCollectorData = {
   message: string;
   patientId: string;
   userId?: string;
 };
 
-export const TypeMessageSchema = enum_(MessageType);
-export const CategoryMessageSchema = enum_(MessageCategory);
-
 /**
- * The schema for a message sent by the collector.
- */
-export const CollectorSchema = object({
-  type: TypeMessageSchema,
-  category: CategoryMessageSchema,
-  levelImportance: pipe(number(), integer(), minValue(1), maxValue(5)),
-  subject: string(),
-  intent: string(),
-  information: object({
-    symptom: nullable(string()),
-    onset: nullable(string()),
-    details: nullable(string()),
-    extraInformation: nullable(string()),
-  }),
-  relatedMessageId: nullable(string()),
-});
-
-export type CollectorSchemaType = InferOutput<typeof CollectorSchema>;
-
-/**
- * The schema for the query arguments of the collector.
- */
-export const CollectorQueryArgsSchema = object({
-  patientId: string(),
-  userId: nullable(string()),
-});
-
-/**
- * Parse the query arguments of the collector.
- * @param args
- * @returns
- */
-export const parseCollectorQueryArgs = (args: string) => {
-  const jsonData = JSON.parse(args);
-
-  return parse(CollectorQueryArgsSchema, jsonData);
-};
-
-/**
- * Process a message and return data extracted from it
+ * Processes the given message and returns the extracted data.
  *
- * @param openai - the openai instance
- * @param content - the message to process
- * @param getMessage - a function to get the messages
- * @returns the response from the openai api
+ * @param openai - the OpenAI instance
+ * @param db - the DB instance
+ * @param content - the content to process
+ * @returns the response from the OpenAI API
  */
-export function collectorRunner(
+export const collectorRunner = async (
   openai: OpenAi,
+  db: typeof dbType,
   content: ContentCollectorData,
-  getMessage: (args: { userId?: string; patientId: string }) => Promise<Message[]>,
-) {
-  return openai.beta.chat.completions.runTools({
+) => {
+  // @ts-expect-error - Likely a bug in the type definition from the library
+  const collectedDataSchema = toJSONSchema({ schema: CollectorSchema });
+
+  /**
+   * Gets the previous (last) message for the patient.
+   */
+  const getPreviousMessageWithResponses = async () => {
+    const previousMessage = await db.query.messages.findFirst({
+      where: (messages, { eq }) => eq(messages.patientId, content.patientId),
+      orderBy: (messages, { desc }) => [desc(messages.createdAt)],
+      with: {
+        responses: true,
+      },
+    });
+
+    if (!previousMessage) {
+      return null;
+    }
+
+    return previousMessage;
+  };
+
+  /**
+   * Validates the schema of the collector.
+   */
+  const validateJson = (args: CollectorSchemaType) => {
+    return args;
+  };
+
+  const runner = openai.beta.chat.completions.runTools({
     model: 'gpt-4-turbo',
     response_format: {
       type: 'json_object',
@@ -102,51 +69,58 @@ export function collectorRunner(
     messages: [
       {
         role: 'system',
-        content: `Tu es un collecteur, ton objectif est d'analyser le message,
-        tu devras collecter l'ensemble des informations qui le compose,
-        fait attention au sarcasse, aux informations inutiles et aux informations manquantes,
-        tu utilises uniquement le français,
-        prends en compte uniquement les messages à caractères médicaux,
-        si le message est une réponse à caractères humoristique, ou blague, tu dois renvoyer un message d'erreur: { "error": "Votre message est inapproprié." },
-        et le trier en fonction de son contenu sous le format JSON avec les clés suivantes :
-        {
-          "type": "(${Object.values(MessageType).join(' ou ')})",
-          "category": "la catégorie du message (${Object.values(MessageCategory).join(', ')})",
-          "levelImportance": "l'importance du message, est un nombre (1 à 5)",
-          "subject": "le sujet du message",
-          "intent": "l'intention du message",
-          "information": {
-            "symptom": "le symptôme, la maladie ou le problème de santé mentionné (traduit en terme médical si possible)",
-            "onset": "la date de début des symptômes ou de la maladie",
-            "details": "Informations supplémentaires",
-            "extraInformation": "Informations complémentaires"
-          },
-          "relatedMessageId": "l'identifiant du message lié"
-        }.
-        Tu dois respecter le format de la réponse,
-        Tu auras accès à l'identifiant du patient et celui de l'utilisateur si il y en a un,
-        Si le message te semble être une réponse à un message précédent, tu dois utiliser la fonction getMessage pour récupérer les messages précédents.
-        `,
+        content: `
+            Tu es un collecteur de données de santé, tu dois analyser les messages reçus et envoyés pour collecter le plus d'informations possible.
+            Ton aide est précieuse pour les professionnels de santé qui pourront mieux comprendre la situation du patient.
+            Tu dois uniquement stocker des informations en français et les traduire en termes médicaux si possible.
+
+            Voici le schéma JSON que tu dois suivre et retourner : ${JSON.stringify(collectedDataSchema)}.
+            Tu dois impérativement respecter ce schéma pour que les données soient correctement traitées.
+            Tu ne dois laisser aucune propriété vide, utilise "null" si nécessaire.
+            Tu peux utiliser la fonction "validateJson" pour vérifier si ton schéma est correct.
+
+            La propriété "levelImportance" est un nombre entre 1 et 5, où 1 est le plus bas (moins important) et 5 est le plus haut (très important).
+
+            La propriété "relatedMessageId" est l'identifiant du message lié. Si le message te semble appartenir à la conversation en cours, tu dois le renseigner. Sinon, laisse la propriété vide pour signifier un nouveau message.
+
+            Le message a été envoyé par ${content.userId ? 'le personnel médical' : 'le patient'}.
+          `,
       },
       {
         role: 'user',
-        content: JSON.stringify(content),
+        content: content.message,
       },
     ],
     tools: [
       {
         type: 'function',
         function: {
-          name: 'getMessage',
-          description: `Fonction permettant de récupérer les messages.
-          les messages auront le format suivant: { id, userId, patientId, data, content }.
-          `,
-          function: getMessage,
-          parse: parseCollectorQueryArgs,
-          // @ts-expect-error - Likely a bug in the type definition from the library
-          parameters: toJSONSchema({ schema: CollectorQueryArgsSchema }),
+          name: 'getPreviousMessageWithResponses',
+          description:
+            'Retourne le dernier message en date pour ce patient, avec les réponses associées.',
+          function: getPreviousMessageWithResponses,
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'validateJson',
+          description:
+            'Valide le schéma de données qui doit être retourné. Cette fonction retournera le schéma final si tout est correct.',
+          function: validateJson,
+          parse: parseCollectorSchemaArgs,
+          parameters: collectedDataSchema,
         },
       },
     ],
   });
-}
+
+  // Get the final content
+  const finalContent = await runner.finalContent();
+
+  if (!finalContent) {
+    return null;
+  }
+
+  return safeParse(CollectorSchema, JSON.parse(finalContent));
+};

@@ -6,7 +6,8 @@ import { SmsSchema } from '$lib/schemas/sms';
 import { MercureTopic, type MercureTopicDataMappingWithTopic } from '$utils/mercure-topic';
 import { messages } from '$server/db/schema/messages';
 import { responses } from '$server/db/schema/responses';
-import { collectorRunner, CollectorSchema, MessageType } from '$server/utils/collector';
+import { MessageType } from '$server/schemas/collector';
+import { collectorRunner } from '$server/utils/collector';
 import { publishMercureTopic } from '$server/utils/mercure';
 
 import type { RequestHandler } from './$types';
@@ -14,10 +15,10 @@ import type { RequestHandler } from './$types';
 export const POST = (async ({ request, locals }) => {
   const { db, openai } = locals;
 
-  // Get the sms body
+  // Get the SMS body
   const data = await request.json();
 
-  // Validate the sms body
+  // Validate the SMS body
   const validatedData = safeParse(SmsSchema, data);
 
   if (!validatedData.success) {
@@ -34,48 +35,12 @@ export const POST = (async ({ request, locals }) => {
   }
 
   // Run the collector runner to process the message
-  const runner = collectorRunner(
-    openai,
-    {
-      patientId: patient.id,
-      message: validatedData.output.message,
-    },
-    async (args: { patientId: string }) => {
-      const { patientId } = args;
+  const validatedDataAi = await collectorRunner(openai, db, {
+    patientId: patient.id,
+    message: validatedData.output.message,
+  });
 
-      if (!patientId) {
-        throw new Error('Patient ID is required.');
-      }
-
-      const messages = await db.query.messages.findMany({
-        where: (message, { eq }) => eq(message.patientId, patientId),
-      });
-
-      return messages;
-    },
-  );
-
-  // Get the final content
-  const finalContent = await runner.finalContent();
-
-  // Check if the final content is valid
-  if (!finalContent) {
-    error(500, {
-      message: "Une erreur s'est produite, veuillez réessayer.",
-    });
-  }
-
-  // Check if the final content is an error
-  const value: { error: string } = JSON.parse(finalContent);
-
-  if (value.error) {
-    error(400, { message: 'Votre message est innaproprié.' });
-  }
-
-  // Validate the final content
-  const validatedDataAi = safeParse(CollectorSchema, JSON.parse(finalContent));
-
-  if (!validatedDataAi.success) {
+  if (!validatedDataAi?.success) {
     error(500, {
       message: "Une erreur s'est produite, veuillez réessayer.",
     });

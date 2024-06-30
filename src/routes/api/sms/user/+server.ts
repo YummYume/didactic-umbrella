@@ -5,66 +5,31 @@ import { SmsUserSchema } from '$lib/schemas/sms';
 
 import { messages } from '$server/db/schema/messages';
 import { responses } from '$server/db/schema/responses';
-import { collectorRunner, CollectorSchema, MessageType } from '$server/utils/collector';
+import { MessageType } from '$server/schemas/collector';
+import { collectorRunner } from '$server/utils/collector';
 
 import type { RequestHandler } from './$types';
 
 export const POST = (async ({ request, locals }) => {
   const { db, openai, user } = locals;
 
-  // Get the sms body
+  // Get the SMS body
   const data = await request.json();
 
-  // Validate the sms body
+  // Validate the SMS body
   const validatedData = safeParse(SmsUserSchema, data);
 
   if (!validatedData.success) {
     error(400, { message: 'Veuillez saisir des données valide.', errors: validatedData.issues });
   }
 
-  const runner = collectorRunner(
-    openai,
-    {
-      message: validatedData.output.message,
-      userId: user?.id,
-      patientId: validatedData.output.patientId,
-    },
-    async (args: { userId?: string; patientId: string }) => {
-      const { userId, patientId } = args;
+  const validatedDataAi = await collectorRunner(openai, db, {
+    message: validatedData.output.message,
+    userId: user?.id,
+    patientId: validatedData.output.patientId,
+  });
 
-      const messages = await db.query.messages.findMany({
-        where: (message, { eq, isNull, and }) =>
-          and(
-            userId ? eq(message.userId, userId) : isNull(message.userId),
-            eq(message.patientId, patientId),
-          ),
-      });
-
-      return messages;
-    },
-  );
-
-  // Get the final content
-  const finalContent = await runner.finalContent();
-
-  // Check if the final content is valid
-  if (!finalContent) {
-    error(500, {
-      message: "Une erreur s'est produite, veuillez réessayer.",
-    });
-  }
-
-  // Check if the final content is an error
-  const value: { error: string } = JSON.parse(finalContent);
-
-  if (value.error) {
-    error(400, { message: 'Votre message est innaproprié.' });
-  }
-
-  // Validate the final content
-  const validatedDataAi = safeParse(CollectorSchema, JSON.parse(finalContent));
-
-  if (!validatedDataAi.success) {
+  if (!validatedDataAi?.success) {
     error(500, {
       message: "Une erreur s'est produite, veuillez réessayer.",
     });
@@ -82,7 +47,7 @@ export const POST = (async ({ request, locals }) => {
       userId: user?.id,
     });
 
-    return json(newResponse, { status: 201, statusText: 'Votre réponse à été enregistré' });
+    return json(newResponse, { status: 201, statusText: 'Votre réponse à été envoyée.' });
   }
 
   // Save the message
@@ -93,5 +58,5 @@ export const POST = (async ({ request, locals }) => {
     patientId: validatedData.output.patientId,
   });
 
-  return json(newMessage, { status: 201, statusText: 'Votre message à été enregistré' });
+  return json(newMessage, { status: 201, statusText: 'Votre message à été envoyé.' });
 }) satisfies RequestHandler;
