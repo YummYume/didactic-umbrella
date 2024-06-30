@@ -3,9 +3,11 @@ import { safeParse } from 'valibot';
 
 import { SmsSchema } from '$lib/schemas/sms';
 
+import { MercureTopic, type MercureTopicDataMappingWithTopic } from '$utils/mercure-topic';
 import { messages } from '$server/db/schema/messages';
 import { responses } from '$server/db/schema/responses';
 import { collectorRunner, CollectorSchema, MessageType } from '$server/utils/collector';
+import { publishMercureTopic } from '$server/utils/mercure';
 
 import type { RequestHandler } from './$types';
 
@@ -90,7 +92,22 @@ export const POST = (async ({ request, locals }) => {
       messageId: aiResponse.relatedMessageId,
     });
 
-    return json(newResponse, { status: 201, statusText: 'Votre réponse à été enregistré' });
+    // Prepare the Mercure data
+    const publishData = {
+      patientId: patient.id,
+      messageId: aiResponse.relatedMessageId,
+      content: validatedData.output.message,
+      phone: patient.phone,
+      topic: MercureTopic.NewResponse,
+    } satisfies MercureTopicDataMappingWithTopic[MercureTopic.NewResponse];
+
+    // Dispatch to the Mercure hub
+    await publishMercureTopic(fetch, {
+      topic: MercureTopic.NewResponse,
+      data: JSON.stringify(publishData),
+    });
+
+    return json(newResponse, { status: 201, statusText: 'Votre réponse à été enregistré.' });
   }
 
   // Save the message
@@ -100,5 +117,19 @@ export const POST = (async ({ request, locals }) => {
     patientId: patient.id,
   });
 
-  return json(newMessage, { status: 201, statusText: 'Votre message à été enregistré' });
+  // Prepare the Mercure data
+  const publishData = {
+    patientId: patient.id,
+    content: validatedData.output.message,
+    phone: patient.phone,
+    topic: MercureTopic.NewMessage,
+  } satisfies MercureTopicDataMappingWithTopic[MercureTopic.NewMessage];
+
+  // Dispatch to the Mercure hub
+  await publishMercureTopic(fetch, {
+    topic: MercureTopic.NewMessage,
+    data: JSON.stringify(publishData),
+  });
+
+  return json(newMessage, { status: 201, statusText: 'Votre message à été enregistré.' });
 }) satisfies RequestHandler;
