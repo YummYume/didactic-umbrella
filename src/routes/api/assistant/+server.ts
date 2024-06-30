@@ -18,8 +18,8 @@ import {
   parseAssistantGeneratePatientUrlArgs,
   parseAssistantQueryRecordsArgs,
 } from '$server/schemas/assistant';
+import { CollectorSchema } from '$server/schemas/collector';
 import { AssistantAllowedFrom, buildOrderBy, buildSearch } from '$server/utils/assistant';
-import { CollectorSchema } from '$server/utils/collector';
 
 import type { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
 import type { RequestHandler } from './$types';

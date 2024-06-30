@@ -7,7 +7,7 @@ import { patients } from './patients';
 import { responses } from './responses';
 import { users } from './users';
 
-import type { CollectorSchemaType } from '$server/utils/collector';
+import type { CollectorSchemaType } from '$server/schemas/collector';
 
 export const messages = mysqlTable('messages', {
   ...identifiable,

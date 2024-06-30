@@ -5,9 +5,11 @@ import { messages } from '../../../src/lib/server/db/schema/messages';
 import { patients } from '../../../src/lib/server/db/schema/patients';
 import { responses } from '../../../src/lib/server/db/schema/responses';
 import { users } from '../../../src/lib/server/db/schema/users';
-import { MessageCategory, MessageType } from '../../../src/lib/server/utils/collector';
-
-import type { CollectorSchemaType } from '../../../src/lib/schemas/collector';
+import {
+  type CollectorSchemaType,
+  MessageCategory,
+  MessageType,
+} from '../../../src/lib/server/schemas/collector';
 
 type NewAnswer = {
   content: string;
@@ -40,6 +42,7 @@ const newMessages: NewMessage[] = [
         extraInformation: null,
         symptom: null,
       },
+      relatedMessageId: null,
     },
     responses: [
       {
@@ -56,6 +59,7 @@ const newMessages: NewMessage[] = [
             symptom: null,
             extraInformation: 'Le patient est en bonne santé',
           },
+          relatedMessageId: null,
         },
       },
     ],
@@ -125,7 +129,10 @@ export const seedMessages = async () => {
 
               await db.insert(responses).values({
                 content: newAnswer.content,
-                data: newAnswer.data,
+                data: {
+                  ...newAnswer.data,
+                  relatedMessageId: insertedMessage.id,
+                },
                 userId: responseUserId,
                 messageId: insertedMessage.id,
               });
