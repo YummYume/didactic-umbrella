@@ -180,7 +180,9 @@
 
 <div {...attributes}>
     <div class="flex max-h-[calc(100%-14.75rem)] grow">
-        <div class="w-full overflow-auto">
+        <div
+            class="w-full overflow-auto scrollbar scrollbar-track-transparent scrollbar-thumb-slate-800 dark:scrollbar-thumb-slate-200"
+        >
             <ul
                 id="{chatContainerId}"
                 class=" space-y-4 px-1"

@@ -38,7 +38,7 @@ Pour lancer le projet, suivre les étapes suivantes :
 2. Créer un fichier `.env.local` et ajouter sa clé d'API OpenAI `OPENAI_API_KEY=MY_API_KEY`
 3. Lancer la commande `make start`
 4. Ouvrir un navigateur et aller à l'adresse [http://localhost:5173](http://localhost:5173)
-5. Lancer la commande `make db` une fois que le serveur est lancé (le serveur est lancé si vous voyez la page d'accueil)
+5. Lancer la commande `make db` une fois que le serveur est lancé (le serveur est lancé si vous voyez une page 500)
 
 PHPMyAdmin est disponible à l'adresse [http://localhost:8080](http://localhost:8080) avec les identifiants `root` et `root` (serveur `mysql`).
 

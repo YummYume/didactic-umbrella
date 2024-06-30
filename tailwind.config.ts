@@ -2,6 +2,7 @@ import aspectRatioPlugin from '@tailwindcss/aspect-ratio';
 import containerQueriesPlugin from '@tailwindcss/container-queries';
 import formsPlugin from '@tailwindcss/forms';
 import typographyPlugin from '@tailwindcss/typography';
+import scrollbarPlugin from 'tailwind-scrollbar';
 import { fontFamily } from 'tailwindcss/defaultTheme';
 import plugin from 'tailwindcss/plugin';
 
@@ -70,6 +71,7 @@ const config: Config = {
     formsPlugin,
     aspectRatioPlugin,
     containerQueriesPlugin,
+    scrollbarPlugin({ nocompatible: true }),
     plugin(({ addVariant }) => {
       addVariant('hocus', ['&:enabled:hover', '&:enabled:focus-visible']);
     }),
