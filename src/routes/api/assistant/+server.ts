@@ -15,8 +15,11 @@ import {
   type AssistantGeneratePatientUrlArgsSchemaType,
   AssistantQueryRecordsArgsSchema,
   type AssistantQueryRecordsArgsSchemaType,
+  AssistantSendSmsArgsSchema,
+  type AssistantSendSmsArgsSchemaType,
   parseAssistantGeneratePatientUrlArgs,
   parseAssistantQueryRecordsArgs,
+  parseAssistantSendSmsArgs,
 } from '$server/schemas/assistant';
 import { CollectorSchema } from '$server/schemas/collector';
 import { AssistantAllowedFrom, buildOrderBy, buildSearch } from '$server/utils/assistant';
@@ -37,7 +40,7 @@ const ASSISTANT_ROLE_CONTENT = `
   Tu peux et devrais répondre en Markdown pour formater tes réponses. Tes réponses devraient être claires et concises, mais également informatives et utiles au personnel médical. Essaie d'être courtois et de ne pas être trop formel. Essaie aussi de leur donner des informations sur le patient si tu en as. Ne donne aucun conseil médical, sous aucun prétexte.
 `;
 
-export const POST = (async ({ request, locals }) => {
+export const POST = (async ({ request, locals, fetch }) => {
   const { user } = locals;
 
   if (!user) {
@@ -139,6 +142,125 @@ export const POST = (async ({ request, locals }) => {
     return args.patientIds.map((patientId) => `${ORIGIN}/admin/patients/${patientId}`);
   };
 
+  /**
+   * Function to send an SMS to a patient.
+   */
+  // const sendSms = async (args: AssistantSendSmsArgsSchemaType) => {
+  //   const { message, patientId } = args;
+
+  //   if (!message || !patientId) {
+  //     throw new Error('Empty message or patient ID.');
+  //   }
+
+  //   try {
+  //     const runner = collectorRunner(
+  //       openai,
+  //       {
+  //         message,
+  //         patientId,
+  //       },
+  //       async (args: { userId?: string; patientId: string }) => {
+  //         const { userId, patientId } = args;
+
+  //         const messages = await db.query.messages.findMany({
+  //           where: (message, { eq, isNull, and }) =>
+  //             and(
+  //               userId ? eq(message.userId, userId) : isNull(message.userId),
+  //               eq(message.patientId, patientId),
+  //             ),
+  //         });
+
+  //         return messages;
+  //       },
+  //     );
+
+  //     // Get the final content
+  //     const finalContent = await runner.finalContent();
+
+  //     // Check if the final content is valid
+  //     if (!finalContent) {
+  //       throw new Error("Une erreur s'est produite, veuillez réessayer.");
+  //     }
+
+  //     // Check if the final content is an error
+  //     const value: { error: string } = JSON.parse(finalContent);
+
+  //     if (value.error) {
+  //       throw new Error('Votre message est innaproprié.');
+  //     }
+
+  //     // Validate the final content
+  //     const validatedDataAi = safeParse(CollectorSchema, JSON.parse(finalContent));
+
+  //     if (!validatedDataAi.success) {
+  //       throw new Error("Une erreur s'est produite, veuillez réessayer.");
+  //     }
+
+  //     // Get the response
+  //     const aiResponse = validatedDataAi.output;
+
+  //     // Save the response
+  //     if (aiResponse.type === MessageType.Response && aiResponse.relatedMessageId) {
+  //       await db.insert(responses).values({
+  //         data: aiResponse,
+  //         content: message,
+  //         messageId: aiResponse.relatedMessageId,
+  //       });
+
+  //       return { success: true };
+  //     }
+
+  //     // Save the message
+  //     await db.insert(messages).values({
+  //       data: aiResponse,
+  //       content: message,
+  //       patientId,
+  //     });
+
+  //     return { success: true };
+  //   } catch (e) {
+  //     console.error('Error while sending SMS', e);
+  //     console.error(e);
+
+  //     throw e;
+  //   }
+  // };
+
+  const sendSms = async (args: AssistantSendSmsArgsSchemaType) => {
+    const { message, patientId } = args;
+
+    if (!message || !patientId) {
+      throw new Error('Empty message or patient ID.');
+    }
+
+    try {
+      const response = await fetch('/api/sms/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patientId,
+          message,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+
+        console.error('Error while sending SMS', data);
+        throw new Error(data.message);
+      }
+
+      return { success: true };
+    } catch (e) {
+      console.error('Error while sending SMS', e);
+      console.error(e);
+
+      throw e;
+    }
+  };
+
   // @ts-expect-error - Likely a bug in the type definition from the library
   const collectedDataSchema = toJSONSchema({ schema: CollectorSchema });
 
@@ -193,12 +315,22 @@ export const POST = (async ({ request, locals }) => {
             parameters: toJSONSchema({ schema: AssistantGeneratePatientUrlArgsSchema }),
           },
         },
+        {
+          type: 'function',
+          function: {
+            name: 'sendSms',
+            description: `Fonction pour envoyer un SMS à un patient. Cette fonction prend en paramètre le contenu du message à envoyer, et l'identifiant du patient à contacter. Elle retourne un objet avec une propriété "success" à "true" si l'envoi a réussi.`,
+            function: sendSms,
+            parse: parseAssistantSendSmsArgs,
+            // @ts-expect-error - Likely a bug in the type definition from the library
+            parameters: toJSONSchema({ schema: AssistantSendSmsArgsSchema }),
+          },
+        },
       ],
     })
     .on('error', (e) => {
       console.error('Error while contacting AI', e);
     });
-
   return new Response(stream.toReadableStream(), {
     headers: {
       'Content-Type': 'text/event-stream',

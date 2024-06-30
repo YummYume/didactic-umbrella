@@ -30,4 +30,6 @@ export const db = drizzle(client, {
   mode: 'default',
 });
 
+export type DB = typeof db;
+
 export const adapter = new DrizzleMySQLAdapter(db, sessions, users);

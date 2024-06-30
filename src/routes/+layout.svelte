@@ -99,7 +99,7 @@
 </svelte:head>
 
 <ModeWatcher />
-<Toaster visibleToasts="{9}" duration="{8000}" theme="{$mode ?? 'system'}" />
+<Toaster visibleToasts="{9}" duration="{8000}" theme="{$mode ?? 'system'}" position="bottom-left" />
 
 {#if data.user}
     <MercureSubscriber
